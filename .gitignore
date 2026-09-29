@@ -46,3 +46,7 @@ desktop.ini
 # MCP 플러그인이 임포트 시 자동 설치하는 DLL 더미 (18MB). 패키지가 재생성하므로 추적 제외.
 Assets/Plugins/NuGet/
 Assets/Plugins/NuGet.meta
+
+# 에셋스토어 임시 UI (SlimUI Modern Menu). 공개 레포 재배포 방지 — 로컬에만 둔다.
+Assets/SlimUI/
+Assets/SlimUI.meta
