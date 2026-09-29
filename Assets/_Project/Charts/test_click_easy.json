@@ -1,0 +1,515 @@
+{
+  "formatVersion": 1,
+  "songId": "test_click",
+  "difficulty": "Easy",
+  "offsetSec": 0.5,
+  "bpms": [
+    {
+      "beat": 0.0,
+      "bpm": 120.0
+    },
+    {
+      "beat": 32.0,
+      "bpm": 150.0
+    }
+  ],
+  "climax": {
+    "startBeat": 64.0,
+    "endBeat": 92.0
+  },
+  "notes": [
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 4.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 5.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 6.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 7.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 8.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 8.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 9.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 10.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 11.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 12.0,
+      "speed": 1.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 13.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 14.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 15.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 16.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 16.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 17.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 18.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 19.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 20.0,
+      "speed": 1.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 21.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 22.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 23.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 24.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 24.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 25.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 26.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 27.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 28.0,
+      "speed": 1.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 29.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 30.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 31.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 32.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 33.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 34.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 35.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 36.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 37.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 38.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 38.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 39.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 40.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 41.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 42.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 43.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 44.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 45.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 46.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 46.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 47.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 48.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 49.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 50.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 51.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 52.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 53.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 54.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 54.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 55.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 56.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 57.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 58.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 59.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 60.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 61.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 62.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 62.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 63.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 64.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 65.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 66.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 67.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 68.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 69.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 70.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 70.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 71.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 72.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 73.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 74.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 75.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 76.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 77.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 78.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 78.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 79.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 80.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 81.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 82.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 83.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 84.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 85.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 86.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 86.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 87.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 88.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 89.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 90.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 91.0
+    }
+  ]
+}
