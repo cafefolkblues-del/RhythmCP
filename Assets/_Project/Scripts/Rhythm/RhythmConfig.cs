@@ -24,6 +24,14 @@ namespace RhythmCP.Rhythm
         [Header("체력")]
         [SerializeField] int _maxHp = 100;
         [SerializeField] int _missDamage = 8;
+        [SerializeField] int _heartHeal = 20;
+
+        [Tooltip("홀드를 뗀 동안 초당 감소. 틱 단위로 (틱 길이 × 이 값)만큼 깎는다.")]
+        [SerializeField] float _holdDrainPerSec = 6f;
+
+        [Header("홀드")]
+        [Tooltip("누르고 있는 동안 콤보가 오르는 간격(박). 0.25 = 16분음표.")]
+        [SerializeField] double _holdTickBeats = 0.25;
 
         public JudgeWindows Windows => new JudgeWindows(_perfectWindow, _greatWindow, _goodWindow);
         public float ScrollSpeed => _scrollSpeed;
@@ -31,5 +39,8 @@ namespace RhythmCP.Rhythm
         public double TailSec => _tailSec;
         public int MaxHp => _maxHp;
         public int MissDamage => _missDamage;
+        public int HeartHeal => _heartHeal;
+        public float HoldDrainPerSec => _holdDrainPerSec;
+        public double HoldTickBeats => _holdTickBeats;
     }
 }

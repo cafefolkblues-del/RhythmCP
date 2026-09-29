@@ -42,7 +42,9 @@ namespace RhythmCP.Chart
         public double Beat;
         public double Time;
 
-        /// Hold / Mash 끝 시각. 그 외는 Time과 같다.
+        /// Hold / Mash 끝 박자·시각. 그 외는 Beat·Time과 같다.
+        public double EndBeat;
+
         public double EndTime;
 
         public float Speed;

@@ -1317,6 +1317,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: RhythmCP.Runtime::RhythmCP.Rhythm.NoteSpawner
   _tapPrefab: {fileID: 8239862465237628086, guid: afd8b8c2eb8de7e41a08385b6ed0a7d6, type: 3}
+  _heartPrefab: {fileID: 570258857511282034, guid: ad735dfb9a7063a488f952d7c97684df, type: 3}
+  _holdPrefab: {fileID: 8542891691102366575, guid: e9957a12a6cddb546aed3e1b825bd728, type: 3}
+  _mashPrefab: {fileID: 6251717900565441424, guid: 29563b3b2cd7cec40a1f44f1641d6c73, type: 3}
   _judgeLine: {fileID: 386606317}
   _topLane: {fileID: 1059241913}
   _bottomLane: {fileID: 252093535}

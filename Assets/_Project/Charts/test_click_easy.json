@@ -85,14 +85,10 @@
       "beat": 15.0
     },
     {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 16.0
-    },
-    {
-      "type": "Tap",
+      "type": "Hold",
       "lane": "Top",
-      "beat": 16.0
+      "beat": 16.0,
+      "endBeat": 20.0
     },
     {
       "type": "Tap",
@@ -101,7 +97,7 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 18.0
     },
     {
@@ -110,25 +106,15 @@
       "beat": 19.0
     },
     {
-      "type": "Tap",
-      "lane": "Top",
-      "beat": 20.0,
-      "speed": 1.5
-    },
-    {
-      "type": "Tap",
+      "type": "Heart",
       "lane": "Bottom",
       "beat": 21.0
     },
     {
-      "type": "Tap",
-      "lane": "Top",
-      "beat": 22.0
-    },
-    {
-      "type": "Tap",
+      "type": "Hold",
       "lane": "Bottom",
-      "beat": 23.0
+      "beat": 22.0,
+      "endBeat": 24.0
     },
     {
       "type": "Tap",
@@ -158,13 +144,17 @@
     {
       "type": "Tap",
       "lane": "Top",
-      "beat": 28.0,
-      "speed": 1.5
+      "beat": 28.0
     },
     {
       "type": "Tap",
       "lane": "Bottom",
       "beat": 29.0
+    },
+    {
+      "type": "Heart",
+      "lane": "Top",
+      "beat": 29.5
     },
     {
       "type": "Tap",
@@ -252,59 +242,15 @@
       "beat": 45.0
     },
     {
-      "type": "Tap",
+      "type": "Mash",
       "lane": "Bottom",
-      "beat": 46.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 46.5
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 47.0
+      "beat": 48.0,
+      "endBeat": 52.0
     },
     {
       "type": "Tap",
       "lane": "Top",
-      "beat": 48.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Top",
-      "beat": 49.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 50.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 51.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Top",
-      "beat": 52.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Top",
-      "beat": 53.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
       "beat": 54.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 54.5
     },
     {
       "type": "Tap",
@@ -318,12 +264,12 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 57.0
     },
     {
       "type": "Tap",
-      "lane": "Bottom",
+      "lane": "Top",
       "beat": 58.0
     },
     {
@@ -338,32 +284,18 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 61.0
     },
     {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 62.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 62.5
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 63.0
-    },
-    {
-      "type": "Tap",
+      "type": "Hold",
       "lane": "Top",
-      "beat": 64.0
+      "beat": 64.0,
+      "endBeat": 68.0
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 65.0
     },
     {
@@ -379,22 +311,7 @@
     {
       "type": "Tap",
       "lane": "Top",
-      "beat": 68.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Top",
-      "beat": 69.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
       "beat": 70.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 70.5
     },
     {
       "type": "Tap",
@@ -403,17 +320,22 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 72.0
     },
     {
       "type": "Tap",
       "lane": "Top",
-      "beat": 73.0
+      "beat": 72.0
     },
     {
       "type": "Tap",
       "lane": "Bottom",
+      "beat": 73.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
       "beat": 74.0
     },
     {
@@ -428,18 +350,13 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 77.0
     },
     {
       "type": "Tap",
-      "lane": "Bottom",
+      "lane": "Top",
       "beat": 78.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 78.5
     },
     {
       "type": "Tap",
@@ -448,17 +365,22 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 80.0
     },
     {
       "type": "Tap",
       "lane": "Top",
-      "beat": 81.0
+      "beat": 80.0
     },
     {
       "type": "Tap",
       "lane": "Bottom",
+      "beat": 81.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
       "beat": 82.0
     },
     {
@@ -473,18 +395,18 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 85.0
     },
     {
-      "type": "Tap",
+      "type": "Heart",
       "lane": "Bottom",
-      "beat": 86.0
+      "beat": 85.5
     },
     {
       "type": "Tap",
-      "lane": "Bottom",
-      "beat": 86.5
+      "lane": "Top",
+      "beat": 86.0
     },
     {
       "type": "Tap",
@@ -498,18 +420,8 @@
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 89.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 90.0
-    },
-    {
-      "type": "Tap",
-      "lane": "Bottom",
-      "beat": 91.0
     }
   ]
 }

@@ -17,9 +17,10 @@ namespace RhythmCP.UI
 
         void Refresh(RhythmHealth health)
         {
-            float ratio = health.Max > 0 ? (float)health.Current / health.Max : 0f;
+            float ratio = health.Max > 0 ? health.Current / health.Max : 0f;
             _fill.anchorMax = new Vector2(ratio, _fill.anchorMax.y);
-            _label.text = $"{health.Current} / {health.Max}";
+            // 올림: 홀드 이탈로 0.3이 남았는데 0으로 보이면 죽은 줄 안다.
+            _label.text = $"{Mathf.CeilToInt(health.Current)} / {health.Max}";
         }
     }
 }

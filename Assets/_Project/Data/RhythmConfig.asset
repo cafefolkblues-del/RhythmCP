@@ -20,3 +20,6 @@ MonoBehaviour:
   _tailSec: 1.5
   _maxHp: 100
   _missDamage: 8
+  _heartHeal: 20
+  _holdDrainPerSec: 6
+  _holdTickBeats: 0.25

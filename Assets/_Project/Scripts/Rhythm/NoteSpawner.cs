@@ -4,11 +4,14 @@ using UnityEngine;
 
 namespace RhythmCP.Rhythm
 {
-    /// 노트가 화면 오른쪽 끝에 닿을 시각에 맞춰 NoteView를 만든다.
+    /// 노트가 화면 오른쪽 끝에 닿을 시각에 맞춰 종류별 뷰를 만들고, 판정 이벤트를 해당 뷰에 전달한다.
     /// 생성·삭제는 Instantiate/Destroy — 풀링은 ⑥ juice 작업 때 이펙트와 같이 붙인다.
     public class NoteSpawner : MonoBehaviour
     {
-        [SerializeField] NoteView _tapPrefab;
+        [SerializeField] NoteViewBase _tapPrefab;
+        [SerializeField] NoteViewBase _heartPrefab;
+        [SerializeField] NoteViewBase _holdPrefab;
+        [SerializeField] NoteViewBase _mashPrefab;
         [SerializeField] Transform _judgeLine;
         [SerializeField] Transform _topLane;
         [SerializeField] Transform _bottomLane;
@@ -16,7 +19,7 @@ namespace RhythmCP.Rhythm
         [SerializeField] float _despawnX = -11f;
 
         readonly List<(double spawnTime, PlayNote note)> _pending = new List<(double, PlayNote)>();
-        readonly Dictionary<PlayNote, NoteView> _live = new Dictionary<PlayNote, NoteView>();
+        readonly Dictionary<PlayNote, NoteViewBase> _live = new Dictionary<PlayNote, NoteViewBase>();
         int _next;
 
         SongClock _clock;
@@ -25,10 +28,12 @@ namespace RhythmCP.Rhythm
 
         public void Init(PlayChart chart, SongClock clock, JudgementSystem judgement, float scrollSpeed)
         {
-            if (_judgement != null) _judgement.Judged -= OnJudged;
+            Unsubscribe();
             _clock = clock;
             _judgement = judgement;
             _judgement.Judged += OnJudged;
+            _judgement.HoldBreakChanged += OnHoldBreakChanged;
+            _judgement.MashEnded += OnMashEnded;
             _scrollSpeed = scrollSpeed;
 
             _pending.Clear();
@@ -37,18 +42,20 @@ namespace RhythmCP.Rhythm
 
             float travel = _spawnX - _judgeLine.position.x;
             foreach (var note in chart.Notes)
-            {
-                if (note.Type != NoteType.Tap) continue; // ②에서 종류별 프리팹 추가
                 _pending.Add((note.Time - travel / (_scrollSpeed * note.Speed), note));
-            }
 
             // 빠른 노트는 늦게 출발해 먼저 나온 느린 노트를 따라잡으므로 노트 시각이 아니라 출발 시각으로 정렬.
             _pending.Sort((a, b) => a.spawnTime.CompareTo(b.spawnTime));
         }
 
-        void OnDestroy()
+        void OnDestroy() => Unsubscribe();
+
+        void Unsubscribe()
         {
-            if (_judgement != null) _judgement.Judged -= OnJudged;
+            if (_judgement == null) return;
+            _judgement.Judged -= OnJudged;
+            _judgement.HoldBreakChanged -= OnHoldBreakChanged;
+            _judgement.MashEnded -= OnMashEnded;
         }
 
         void Update()
@@ -61,17 +68,48 @@ namespace RhythmCP.Rhythm
 
         void Spawn(PlayNote note)
         {
+            var prefab = PrefabFor(note.Type);
+            if (prefab == null)
+            {
+                Debug.LogWarning($"[NoteSpawner] {note.Type} 프리팹 없음 — beat {note.Beat} 표시 생략");
+                return;
+            }
+
             var laneY = note.Lane == Lane.Top ? _topLane.position.y : _bottomLane.position.y;
-            var view = Instantiate(_tapPrefab, transform);
+            var view = Instantiate(prefab, transform);
             view.Init(note, _clock, _judgeLine.position.x, laneY, _scrollSpeed * note.Speed, _despawnX);
             _live[note] = view;
         }
 
+        NoteViewBase PrefabFor(NoteType type) => type switch
+        {
+            NoteType.Tap => _tapPrefab,
+            NoteType.Heart => _heartPrefab,
+            NoteType.Hold => _holdPrefab,
+            NoteType.Mash => _mashPrefab,
+            _ => null,
+        };
+
         void OnJudged(JudgeResult result)
         {
             if (!_live.TryGetValue(result.Note, out var view)) return;
-            _live.Remove(result.Note);
-            if (view != null) view.OnJudged(result.Judgement);
+
+            // 홀드는 꼬리 판정까지 이벤트를 계속 받아야 하므로 꼬리에서 목록을 뺀다.
+            bool done = result.Note.Type != NoteType.Hold || result.Part == NotePart.Tail;
+            if (done) _live.Remove(result.Note);
+            if (view != null) view.OnJudged(result);
+        }
+
+        void OnHoldBreakChanged(PlayNote note, bool broken)
+        {
+            if (_live.TryGetValue(note, out var view) && view != null) view.OnHoldBreakChanged(broken);
+        }
+
+        void OnMashEnded(PlayNote note, int hits)
+        {
+            if (!_live.TryGetValue(note, out var view)) return;
+            _live.Remove(note);
+            if (view != null) view.OnMashEnded();
         }
     }
 }

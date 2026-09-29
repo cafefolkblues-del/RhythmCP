@@ -45,6 +45,7 @@ namespace RhythmCP.Chart
                     Lane = src.lane,
                     Beat = src.beat,
                     Time = tempo.BeatToSec(src.beat),
+                    EndBeat = endBeat,
                     EndTime = tempo.BeatToSec(endBeat),
                     Speed = speed,
                 });

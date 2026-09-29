@@ -3,50 +3,34 @@ using UnityEngine;
 
 namespace RhythmCP.Rhythm
 {
-    /// 노트 한 개의 표시. 위치는 매 프레임 SongTime에서 다시 계산한다(누적 이동 X — 오차가 쌓이지 않게).
-    public class NoteView : MonoBehaviour
+    /// 단발 노트(Tap·Heart) 표시.
+    public class NoteView : NoteViewBase
     {
         [SerializeField] SpriteRenderer _renderer;
         [SerializeField] Color _missColor = new Color(0.5f, 0.5f, 0.5f, 0.4f);
 
-        PlayNote _note;
-        SongClock _clock;
-        float _judgeX;
-        float _unitsPerSec;
-        float _despawnX;
+        [Tooltip("동시치기(같은 박자 위아래 Tap)일 때 색. 판별은 ChartLoader.")]
+        [SerializeField] Color _geminiColor = new Color(0.9f, 0.6f, 0.25f);
 
-        public void Init(PlayNote note, SongClock clock, float judgeX, float laneY, float unitsPerSec, float despawnX)
+        public override void Init(PlayNote note, SongClock clock, float judgeX, float laneY, float unitsPerSec, float despawnX)
         {
-            _note = note;
-            _clock = clock;
-            _judgeX = judgeX;
-            _unitsPerSec = unitsPerSec;
-            _despawnX = despawnX;
-            transform.position = new Vector3(XAt(clock.SongTime), laneY, 0f);
+            base.Init(note, clock, judgeX, laneY, unitsPerSec, despawnX);
+            if (note.IsGemini) _renderer.color = _geminiColor;
         }
 
         /// Hit은 바로 사라지고, Miss는 흐리게 바꿔 판정선을 지나쳐 흘러가게 둔다(뮤즈대시식).
         /// 히트 연출(juice)은 ⑥에서 이 자리에 붙는다.
-        public void OnJudged(Judgement judgement)
+        public override void OnJudged(JudgeResult result)
         {
-            if (judgement == Judgement.Miss)
-                _renderer.color = _missColor;
-            else
-                Destroy(gameObject);
+            if (result.IsHit) Destroy(gameObject);
+            else _renderer.color = _missColor;
         }
 
         void Update()
         {
-            float x = XAt(_clock.SongTime);
-            if (x < _despawnX)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            var p = transform.position;
-            transform.position = new Vector3(x, p.y, p.z);
+            float x = XAt(Note.Time);
+            if (x < DespawnX) Destroy(gameObject);
+            else SetX(x);
         }
-
-        float XAt(double songTime) => _judgeX + (float)((_note.Time - songTime) * _unitsPerSec);
     }
 }

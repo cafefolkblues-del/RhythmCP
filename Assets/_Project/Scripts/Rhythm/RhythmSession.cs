@@ -12,6 +12,7 @@ namespace RhythmCP.Rhythm
 
     /// 한 곡 플레이의 조립·시작·종료. 각 시스템은 서로를 모르고, 여기서만 연결한다.
     /// 곡/난이도는 지금은 인스펙터 지정 — 허브(M4) 곡 선택이 생기면 씬 간 전달로 교체.
+    /// 예외 처리(참조 누락·깨진 채보 등)는 플레이를 여러 번 돌려 실제로 터지는 지점을 보고 나중에 한 번에 정리한다.
     public class RhythmSession : MonoBehaviour
     {
         [SerializeField] SongDefinition _song;
@@ -39,10 +40,10 @@ namespace RhythmCP.Rhythm
         {
             _chart = ChartLoader.Load(_song.GetChart(_difficulty));
 
-            _judgement.Init(_chart, _clock, _input, _config.Windows);
+            _judgement.Init(_chart, _clock, _input, _config.Windows, _config.HoldTickBeats);
             _spawner.Init(_chart, _clock, _judgement, _config.ScrollSpeed);
             _combo.Init(_judgement);
-            _health.Init(_judgement, _config.MaxHp, _config.MissDamage);
+            _health.Init(_judgement, _config.MaxHp, _config.MissDamage, _config.HeartHeal, _config.HoldDrainPerSec);
             _health.Depleted += OnHealthDepleted;
 
             _clock.Begin(_song.Clip, _config.LeadInSec);
@@ -73,7 +74,7 @@ namespace RhythmCP.Rhythm
             _judgement.Stop();
             _clock.Stop();
 
-            Debug.Log($"[RhythmSession] 종료: {reason} · MaxCombo {_combo.MaxCombo} · HP {_health.Current}/{_health.Max}");
+            Debug.Log($"[RhythmSession] 종료: {reason} · MaxCombo {_combo.MaxCombo} · HP {_health.Current:0.#}/{_health.Max}");
             Ended?.Invoke(reason);
         }
     }
