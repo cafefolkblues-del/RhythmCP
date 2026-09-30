@@ -4,6 +4,7 @@ using UnityEngine;
 namespace RhythmCP.Rhythm
 {
     /// 단발 노트(Tap·Heart) 표시.
+    /// TODO(에셋): 빠른 노트(speed > 1)는 별도 스프라이트로 교체 예정. 꼬리 잔상(트레일)·화살표 표식 아이디어는 보류(2026-09-30).
     public class NoteView : NoteViewBase
     {
         [SerializeField] SpriteRenderer _renderer;

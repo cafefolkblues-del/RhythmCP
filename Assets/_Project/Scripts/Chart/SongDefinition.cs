@@ -3,6 +3,7 @@ using UnityEngine;
 namespace RhythmCP.Chart
 {
     /// 곡 하나 = 오디오 + 난이도별 채보 JSON.
+    /// TODO(에셋): 곡별 배경 슬롯(640×360 1장) 추가 예정. 여러 겹 패럴랙스 배경은 나중에(2026-09-30).
     [CreateAssetMenu(menuName = "RhythmCP/Song Definition", fileName = "Song_")]
     public class SongDefinition : ScriptableObject
     {
