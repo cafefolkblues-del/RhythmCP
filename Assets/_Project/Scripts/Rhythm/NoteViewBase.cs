@@ -29,7 +29,8 @@ namespace RhythmCP.Rhythm
 
         public virtual void OnMashEnded() { }
 
-        protected float XAt(double time) => JudgeX + (float)((time - Clock.SongTime) * UnitsPerSec);
+        // VisualTime: 화면 오프셋이 적용된 표시용 시각. 판정은 SongTime 기준이라 여기만 다르다.
+        protected float XAt(double time) => JudgeX + (float)((time - Clock.VisualTime) * UnitsPerSec);
 
         protected void SetX(float x)
         {

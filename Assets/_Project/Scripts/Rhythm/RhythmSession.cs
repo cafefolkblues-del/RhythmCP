@@ -41,6 +41,7 @@ namespace RhythmCP.Rhythm
         public Difficulty Difficulty => _difficulty;
         public PlayChart Chart => _chart;
         public double SongTime => _clock.SongTime;
+        public bool IsPlaying => _playing;
 
         /// 곡 끝 = 마지막 노트 + 여유와 오디오 길이 중 늦은 쪽. 채보가 먼저 끝나도 곡은 끝까지 듣게.
         public double EndTime => Math.Max(_chart.LastNoteEndSec + _config.TailSec, _clock.ClipLength);
@@ -95,7 +96,12 @@ namespace RhythmCP.Rhythm
 
         /// 결과창·일시정지(⑤) 공용. 씬을 다시 불러 모든 상태를 처음부터 만든다.
         /// (씬이 Build Settings에 등록돼 있어야 이름으로 로드된다.)
-        public void Retry() => SceneManager.LoadScene(gameObject.scene.name);
+        public void Retry()
+        {
+            // 일시정지 메뉴에서 오면 timeScale이 0인 채라 되돌려 둔다(씬을 다시 불러도 timeScale은 전역이라 유지됨).
+            Time.timeScale = 1f;
+            SceneManager.LoadScene(gameObject.scene.name);
+        }
 
         void OnHealthDepleted(RhythmHealth _) => End(failed: true);
 

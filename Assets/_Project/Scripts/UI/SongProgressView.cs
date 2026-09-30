@@ -5,6 +5,7 @@ using UnityEngine;
 namespace RhythmCP.UI
 {
     /// HUD 곡 정보(곡명 · 난이도) + 하단 진행바와 클라이맥스 구간 표시.
+    /// TODO(연출): 곡 시작 때 좌하단에 곡명이 흘러 지나가는 연출 고려 중 — 카타나 제로 참고.
     public class SongProgressView : MonoBehaviour
     {
         [SerializeField] RhythmSession _session;

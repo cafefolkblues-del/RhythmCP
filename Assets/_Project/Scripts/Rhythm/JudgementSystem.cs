@@ -121,7 +121,8 @@ namespace RhythmCP.Rhythm
 
         void OnLanePressed(Lane lane, double realtime)
         {
-            if (!_active) return;
+            // 일시정지·카운트다운 중 입력은 판정하지 않는다(⑤ 확정).
+            if (!_active || _clock.IsPaused) return;
             double pressTime = _clock.RealtimeToSongTime(realtime);
 
             // 연타 구간 중엔 어느 버튼이든 연타로만 센다(연타 구간에 다른 노트를 겹쳐 두지 않는 게 채보 규칙).
@@ -162,7 +163,7 @@ namespace RhythmCP.Rhythm
 
         void OnLaneReleased(Lane lane, double realtime)
         {
-            if (!_active) return;
+            if (!_active || _clock.IsPaused) return;
             var hold = _holds[(int)lane];
             if (hold == null) return;
 
@@ -170,9 +171,25 @@ namespace RhythmCP.Rhythm
             FlushHold(lane);
         }
 
-        void Update()
+        /// 재개 직후 호출. 멈춘 사이 손을 뗐으면 그 시점부터 뗀 것으로, 다시 잡고 있으면 이어진 것으로 맞춘다(⑤ 확정).
+        public void SyncHoldsAfterResume()
         {
             if (!_active) return;
+            double now = _clock.SongTime;
+            for (int l = 0; l < 2; l++)
+            {
+                var hold = _holds[l];
+                if (hold == null) continue;
+                bool held = _input.IsHeld((Lane)l);
+                if (held && !hold.IsHeld) hold.Press(now, _signals);
+                else if (!held && hold.IsHeld) hold.Release(now, _signals);
+                FlushHold((Lane)l);
+            }
+        }
+
+        void Update()
+        {
+            if (!_active || _clock.IsPaused) return;
             double now = _clock.SongTime;
 
             for (int l = 0; l < 2; l++)

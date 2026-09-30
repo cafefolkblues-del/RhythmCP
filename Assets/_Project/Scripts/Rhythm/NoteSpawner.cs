@@ -78,7 +78,8 @@ namespace RhythmCP.Rhythm
         {
             if (_clock == null) return;
 
-            while (_next < _pending.Count && _pending[_next].spawnTime <= _clock.SongTime)
+            // 표시와 같은 시각(VisualTime)으로 출발시켜야 화면 오프셋이 있어도 오른쪽 끝에서 들어온다.
+            while (_next < _pending.Count && _pending[_next].spawnTime <= _clock.VisualTime)
                 Spawn(_pending[_next++].note);
         }
 
