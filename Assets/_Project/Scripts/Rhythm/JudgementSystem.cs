@@ -91,6 +91,18 @@ namespace RhythmCP.Rhythm
             _active = true;
         }
 
+        /// 특수능력 보너스 노트. 아직 판정 안 한 구간(커서 뒤)에 시각 순서를 지켜 끼워 넣는다.
+        public void AddNotes(IEnumerable<PlayNote> notes)
+        {
+            foreach (var note in notes)
+            {
+                var list = _laneNotes[(int)note.Lane];
+                int i = _cursor[(int)note.Lane];
+                while (i < list.Count && list[i].Time <= note.Time) i++;
+                list.Insert(i, note);
+            }
+        }
+
         /// 곡 종료·실패 시 판정을 멈춘다. 남은 노트는 Miss로 치지 않는다.
         public void Stop()
         {

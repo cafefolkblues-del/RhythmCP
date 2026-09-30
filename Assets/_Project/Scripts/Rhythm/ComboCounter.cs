@@ -44,6 +44,8 @@ namespace RhythmCP.Rhythm
         void OnJudged(JudgeResult result)
         {
             if (result.Note.Type == NoteType.Heart) return;
+            // 보너스 노트는 맞히면 콤보 +1, 놓쳐도 끊지 않는다.
+            if (!result.IsHit && result.Note.IsBonus) return;
 
             if (result.IsHit) Add(ComboSource.Note, result.Judgement);
             else

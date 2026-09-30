@@ -29,7 +29,7 @@ namespace RhythmCP.UI
         void Show(JudgeResult result)
         {
             // 하트는 놓쳐도 벌칙이 없어서 MISS를 띄우면 벌받은 것처럼 보인다.
-            if (result.Note.Type == RhythmCP.Chart.NoteType.Heart && !result.IsHit) return;
+            if (result.Note.IsPenaltyFree && !result.IsHit) return;
 
             _text.text = result.Judgement.ToString().ToUpperInvariant();
             if (_showDeltaMs && result.Judgement != Judgement.Miss)

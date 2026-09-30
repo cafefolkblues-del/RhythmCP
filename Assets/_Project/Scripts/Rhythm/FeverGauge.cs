@@ -34,16 +34,20 @@ namespace RhythmCP.Rhythm
 
         public float ScoreMultiplier => IsActive ? _multiplier : 1f;
 
-        public void Init(JudgementSystem judgement, SongClock clock, RhythmConfig config)
+        /// 발동 중일 때 끝나는 곡 시각. 보너스 노트 배치(특수능력)가 쓴다.
+        public double EndTime => _endTime;
+
+        /// gainMultiplier·durationAddSec = 특수능력 보정(RhythmModifiers). 없으면 1·0.
+        public void Init(JudgementSystem judgement, SongClock clock, RhythmConfig config, float gainMultiplier = 1f, double durationAddSec = 0)
         {
             if (_judgement != null) _judgement.Judged -= OnJudged;
             _judgement = judgement;
             _judgement.Judged += OnJudged;
             _clock = clock;
             _max = Mathf.Max(1f, config.FeverMax);
-            _gainPerfect = config.FeverGainPerfect;
-            _gainGreat = config.FeverGainGreat;
-            _duration = Math.Max(0.1, config.FeverDurationSec);
+            _gainPerfect = config.FeverGainPerfect * gainMultiplier;
+            _gainGreat = config.FeverGainGreat * gainMultiplier;
+            _duration = Math.Max(0.1, config.FeverDurationSec + durationAddSec);
             _multiplier = config.FeverScoreMultiplier;
 
             _gauge = 0f;
@@ -59,7 +63,7 @@ namespace RhythmCP.Rhythm
 
         void OnJudged(JudgeResult result)
         {
-            if (IsActive || result.Note.Type == NoteType.Heart) return;
+            if (IsActive || result.Note.IsPenaltyFree) return;
 
             float gain = result.Judgement switch
             {

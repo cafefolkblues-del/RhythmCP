@@ -56,7 +56,7 @@ namespace RhythmCP.Rhythm
 
         void OnJudged(JudgeResult result)
         {
-            if (result.Note.Type == NoteType.Heart) return;
+            if (result.Note.IsPenaltyFree) return;
 
             _counts[(int)result.Judgement]++;
 

@@ -54,7 +54,7 @@ namespace RhythmCP.Rhythm
                 return;
             }
 
-            if (!result.IsHit) Apply(-_missDamage);
+            if (!result.IsHit && !result.Note.IsBonus) Apply(-_missDamage);
         }
 
         void OnHoldTicked(PlayNote note, bool held, double seconds)

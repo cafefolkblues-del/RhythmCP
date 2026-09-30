@@ -54,6 +54,10 @@ namespace RhythmCP.Rhythm
             _minHitRate = minHitRate;
         }
 
+        /// 특수능력 콤보 상한 조정용 복사본.
+        public ScoringRules WithComboMaxAdd(float add) => new ScoringRules(_perfect, _great, _good, _holdTick, _mashHit,
+            _comboStep, _comboStepBonus, _comboMax + add, _accuracyGoodWeight, _gradeS, _gradeA, _minHitRate);
+
         public int BasePoints(ComboSource source, Judgement judgement) => source switch
         {
             ComboSource.HoldTick => _holdTick,

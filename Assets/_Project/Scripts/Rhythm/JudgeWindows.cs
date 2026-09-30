@@ -36,6 +36,10 @@ namespace RhythmCP.Rhythm
             return false;
         }
 
+        /// 특수능력 판정 보조(RhythmModifiers)용. 각 윈도우를 ms만큼 넓힌 복사본.
+        public JudgeWindows Widen(double perfectMs, double greatMs, double goodMs) =>
+            new JudgeWindows(Perfect + perfectMs / 1000.0, Great + greatMs / 1000.0, Good + goodMs / 1000.0);
+
         /// 노트가 판정선을 이만큼 지나면 Miss.
         public bool IsTooLate(double delta) => delta > Good;
     }

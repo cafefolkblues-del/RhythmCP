@@ -40,15 +40,31 @@ namespace RhythmCP.Rhythm
             _live.Clear();
             _next = 0;
 
-            float travel = _spawnX - _judgeLine.position.x;
             foreach (var note in chart.Notes)
-                _pending.Add((note.Time - travel / (_scrollSpeed * note.Speed), note));
+                _pending.Add((SpawnTime(note), note));
 
             // 빠른 노트는 늦게 출발해 먼저 나온 느린 노트를 따라잡으므로 노트 시각이 아니라 출발 시각으로 정렬.
             _pending.Sort((a, b) => a.spawnTime.CompareTo(b.spawnTime));
         }
 
         void OnDestroy() => Unsubscribe();
+
+        /// 오른쪽 끝에서 판정선까지 걸리는 시간. 플레이 중 노트를 추가할 때 이보다 늦은 시각에만 넣어야 화면 밖에서 들어온다.
+        public double TravelTime(float speed) => (_spawnX - _judgeLine.position.x) / (_scrollSpeed * speed);
+
+        double SpawnTime(PlayNote note) => note.Time - TravelTime(note.Speed);
+
+        /// 특수능력 보너스 노트. 아직 출발 안 한 구간에 출발 시각 순서를 지켜 끼워 넣는다.
+        public void AddNotes(IEnumerable<PlayNote> notes)
+        {
+            foreach (var note in notes)
+            {
+                double spawn = SpawnTime(note);
+                int i = _next;
+                while (i < _pending.Count && _pending[i].spawnTime <= spawn) i++;
+                _pending.Insert(i, (spawn, note));
+            }
+        }
 
         void Unsubscribe()
         {

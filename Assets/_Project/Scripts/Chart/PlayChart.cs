@@ -53,5 +53,11 @@ namespace RhythmCP.Chart
         public bool IsGemini;
 
         public bool Judged;
+
+        /// 특수능력이 플레이 중 추가한 노트. 점수·콤보엔 들어가고, 놓쳐도 벌칙 없음, 정확도·히트율·등급 분모 제외.
+        public bool IsBonus;
+
+        /// 하트·보너스 노트 = 놓쳐도 콤보·체력·집계에 영향 없는 노트.
+        public bool IsPenaltyFree => Type == NoteType.Heart || IsBonus;
     }
 }
