@@ -190,6 +190,8 @@ namespace RhythmCP.Rhythm
         }
 
         /// 머리를 놓친 홀드는 전체 실패 — 꼬리도 바로 Miss로 확정한다.
+        /// ⚠️ Miss 2개가 한꺼번에 나서 체력이 미스 데미지 ×2(기본 −16) 깎인다. 판정 2개 규칙을 그대로 따른 결과.
+        ///    캐주얼 기준으로 아프면 꼬리 Miss만 데미지 제외(RhythmHealth에서 Part == Tail && 머리 Miss 동반 시 무시)로 바꾼다.
         void MissHead(Lane lane, PlayNote note, double delta)
         {
             _cursor[(int)lane]++;
