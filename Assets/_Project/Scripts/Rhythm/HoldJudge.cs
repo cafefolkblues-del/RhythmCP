@@ -63,11 +63,17 @@ namespace RhythmCP.Rhythm
             _windows = windows;
             _lastTickTime = note.Time;
 
-            // 틱을 박자로 찍고 초로 변환 — BPM 변속 구간을 지나는 홀드도 틱이 박에 붙어 있게.
+            _ticks = TickTimes(note, tempo, tickBeats).ToArray();
+        }
+
+        /// 틱을 박자로 찍고 초로 변환 — BPM 변속 구간을 지나는 홀드도 틱이 박에 붙어 있게.
+        /// 이론 최대 점수 계산(ScoringRules)도 같은 틱 목록을 써야 해서 static으로 연다.
+        public static List<double> TickTimes(PlayNote note, TempoMap tempo, double tickBeats)
+        {
             var ticks = new List<double>();
             for (double b = note.Beat + tickBeats; b < note.EndBeat - TickEpsilon; b += tickBeats)
                 ticks.Add(tempo.BeatToSec(b));
-            _ticks = ticks.ToArray();
+            return ticks;
         }
 
         public void Release(double time, List<HoldSignal> output)

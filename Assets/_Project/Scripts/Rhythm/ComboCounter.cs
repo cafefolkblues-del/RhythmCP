@@ -9,6 +9,10 @@ namespace RhythmCP.Rhythm
     {
         public event Action<ComboCounter> Changed;
 
+        /// 콤보가 오른 순간(출처, 판정, 오른 뒤 콤보). 점수는 판정 이벤트가 아니라 이걸 받는다 —
+        /// 판정 이벤트를 따로 받으면 구독 순서에 따라 콤보 갱신 전 값으로 배수를 계산할 수 있어서.
+        public event Action<ComboSource, Judgement, int> Advanced;
+
         JudgementSystem _judgement;
 
         public int Combo { get; private set; }
@@ -41,7 +45,7 @@ namespace RhythmCP.Rhythm
         {
             if (result.Note.Type == NoteType.Heart) return;
 
-            if (result.IsHit) Add();
+            if (result.IsHit) Add(ComboSource.Note, result.Judgement);
             else
             {
                 Combo = 0;
@@ -51,16 +55,17 @@ namespace RhythmCP.Rhythm
 
         void OnHoldTicked(PlayNote note, bool held, double seconds)
         {
-            if (held) Add();
+            if (held) Add(ComboSource.HoldTick, Judgement.Perfect);
         }
 
-        void OnMashHit(PlayNote note, int hits) => Add();
+        void OnMashHit(PlayNote note, int hits) => Add(ComboSource.MashHit, Judgement.Perfect);
 
-        void Add()
+        void Add(ComboSource source, Judgement judgement)
         {
             Combo++;
             if (Combo > MaxCombo) MaxCombo = Combo;
             Changed?.Invoke(this);
+            Advanced?.Invoke(source, judgement, Combo);
         }
     }
 }

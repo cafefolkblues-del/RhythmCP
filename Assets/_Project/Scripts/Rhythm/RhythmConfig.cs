@@ -33,6 +33,35 @@ namespace RhythmCP.Rhythm
         [Tooltip("누르고 있는 동안 콤보가 오르는 간격(박). 0.25 = 16분음표.")]
         [SerializeField] double _holdTickBeats = 0.25;
 
+        [Header("점수")]
+        [SerializeField] int _perfectPoints = 300;
+        [SerializeField] int _greatPoints = 150;
+        [SerializeField] int _goodPoints = 50;
+        [SerializeField] int _holdTickPoints = 50;
+        [SerializeField] int _mashHitPoints = 50;
+
+        [Tooltip("이 콤보마다 배수 +_comboStepBonus.")]
+        [SerializeField] int _comboStep = 10;
+        [SerializeField] float _comboStepBonus = 0.1f;
+        [SerializeField] float _comboMaxMultiplier = 1.5f;
+
+        [Tooltip("정확도식에서 Good 가중치 α. (P + G×0.5 + Good×α) / 총 판정.")]
+        [SerializeField] float _accuracyGoodWeight = 0.25f;
+
+        [Header("등급 (점수율 = 점수 / 이론 최대 점수)")]
+        [SerializeField] float _gradeSRatio = 0.95f;
+        [SerializeField] float _gradeARatio = 0.80f;
+
+        [Tooltip("히트율이 이보다 낮으면 점수와 무관하게 B.")]
+        [SerializeField] float _minHitRate = 0.70f;
+
+        [Header("피버")]
+        [SerializeField] float _feverMax = 100f;
+        [SerializeField] float _feverGainPerfect = 2f;
+        [SerializeField] float _feverGainGreat = 1f;
+        [SerializeField] double _feverDurationSec = 5.0;
+        [SerializeField] float _feverScoreMultiplier = 1.5f;
+
         public JudgeWindows Windows => new JudgeWindows(_perfectWindow, _greatWindow, _goodWindow);
         public float ScrollSpeed => _scrollSpeed;
         public double LeadInSec => _leadInSec;
@@ -42,5 +71,16 @@ namespace RhythmCP.Rhythm
         public int HeartHeal => _heartHeal;
         public float HoldDrainPerSec => _holdDrainPerSec;
         public double HoldTickBeats => _holdTickBeats;
+
+        public ScoringRules Scoring => new ScoringRules(
+            _perfectPoints, _greatPoints, _goodPoints, _holdTickPoints, _mashHitPoints,
+            _comboStep, _comboStepBonus, _comboMaxMultiplier, _accuracyGoodWeight,
+            _gradeSRatio, _gradeARatio, _minHitRate);
+
+        public float FeverMax => _feverMax;
+        public float FeverGainPerfect => _feverGainPerfect;
+        public float FeverGainGreat => _feverGainGreat;
+        public double FeverDurationSec => _feverDurationSec;
+        public float FeverScoreMultiplier => _feverScoreMultiplier;
     }
 }
