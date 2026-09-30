@@ -13,7 +13,12 @@ namespace RhythmCP.UI
         [SerializeField] GameObject _panel;
 
         [Header("헤더")]
-        [SerializeField] TMP_Text _grade;
+        [Tooltip("등급 이미지. 아트가 들어오면 아래 스프라이트만 교체.")]
+        [SerializeField] Image _grade;
+        [SerializeField] Sprite _gradeS;
+        [SerializeField] Sprite _gradeA;
+        [SerializeField] Sprite _gradeB;
+        [SerializeField] Sprite _gradeFailed;
         [SerializeField] TMP_Text _subtitle;
 
         [Header("스탯")]
@@ -35,9 +40,6 @@ namespace RhythmCP.UI
         [Header("S급 캐릭터 해금 알림 (클릭하면 닫힘)")]
         [SerializeField] GameObject _unlockBanner;
         [SerializeField] Button _unlockDismiss;
-
-        [SerializeField] Color _gradeColor = new Color(0.9f, 0.3f, 0.5f);
-        [SerializeField] Color _failedColor = new Color(0.6f, 0.6f, 0.6f);
 
         void Awake()
         {
@@ -62,8 +64,12 @@ namespace RhythmCP.UI
 
         void Show(PlayResult r)
         {
-            _grade.text = r.Failed ? "FAILED" : r.Grade.ToString();
-            _grade.color = r.Failed ? _failedColor : _gradeColor;
+            _grade.sprite = r.Failed ? _gradeFailed : r.Grade switch
+            {
+                Grade.S => _gradeS,
+                Grade.A => _gradeA,
+                _ => _gradeB,
+            };
             _subtitle.text = r.Failed ? $"{r.SongTitle} · SCORE {r.Score:N0}" : $"GRADE {r.Grade} · SCORE {r.Score:N0}";
 
             _score.text = r.Score.ToString("N0");
