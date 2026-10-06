@@ -172,6 +172,123 @@ namespace RhythmCP.Tests
             CollectionAssert.AreEqual(new[] { "앉아요.", "…(무엇을 할까)", "▶ 창밖을 본다" }, p.Backlog.Select(b => b.Text).ToArray());
         }
 
+        [TestCase(0, "L008")]
+        [TestCase(1, "L007")]
+        public void SampleEpisode_PlaysToEnd_BothChoices(int pick, string gatedLine)
+        {
+            string path = System.IO.Path.Combine(UnityEngine.Application.dataPath, "_Project/VN/base/ep_c01.json");
+            var ep = VnSerializer.ReadEpisode(System.IO.File.ReadAllText(path));
+            var p = Play(ep);
+            var seen = new List<string>();
+            p.LineShown += s => seen.Add(s.Line.id);
+            p.Begin();
+            for (int guard = 0; guard < 100 && !p.Ended; guard++)
+            {
+                if (p.AwaitingChoice) p.Choose(pick);
+                p.Advance();
+            }
+            Assert.IsTrue(p.Ended);
+            CollectionAssert.Contains(seen, gatedLine);
+            Assert.AreEqual(11, seen.Count, "if 라인 둘 중 하나만");
+            Assert.IsEmpty(p.Stage.actors);
+            Assert.IsNull(p.Stage.bgm);
+            Assert.AreEqual("room", p.Stage.bg);
+        }
+
+        // ---------------- ③ 기읽·세이브·오토
+
+        static string TempDir()
+        {
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "rhythmcp_vn_" + System.Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(dir);
+            return dir;
+        }
+
+        [Test]
+        public void ReadLog_PersistsAcrossInstances()
+        {
+            string path = System.IO.Path.Combine(TempDir(), "read.json");
+            var a = new VnReadLog(path);
+            a.MarkRead("ep_c01", "L003");
+            Assert.IsTrue(a.Dirty);
+            a.Flush();
+            var b = new VnReadLog(path);
+            Assert.IsTrue(b.IsRead("ep_c01", "L003"));
+            Assert.IsFalse(b.IsRead("ep_c01", "L004"));
+            Assert.IsFalse(b.Dirty);
+        }
+
+        [Test]
+        public void SaveLoad_RestoresSameLineStageAndFlags()
+        {
+            var a = L("L001", "yume"); a.pos = "left"; a.bg = "hall";
+            var b = L("L002", "nemu"); b.pos = "right"; b.cg = "cg_x";
+            var ch = L("L003", "mc");
+            ch.choice = new List<VnChoice> { new VnChoice { text = "x", add = new Dictionary<string, int> { { "k", 2 } } } };
+            var c = L("L004", "nemu"); c.exit = new List<string> { "yume" };
+            var ep = Episode(a, b, ch, c);
+
+            var p = Play(ep);
+            p.Begin();
+            p.Advance(); p.Advance(); p.Choose(0); p.Advance();   // L004 표시 중
+            var store = new VnSaveStore(TempDir(), 3);
+            store.Save(1, new VnSaveData
+            {
+                episodeId = ep.meta.id, lineId = p.Current.Line.id,
+                flags = VnSerializer.Clone(p.Flags), stage = VnSerializer.Clone(p.StageBeforeCurrent),
+            });
+            Assert.IsFalse(store.Exists(0));
+            var data = store.Load(1);
+
+            var q = Play(ep, data.flags);
+            q.Begin(q.IndexOf(data.lineId), data.stage);
+            Assert.AreEqual("L004", q.Current.Line.id);
+            CollectionAssert.AreEqual(new[] { "yume" }, q.Current.Exited, "그 라인의 퇴장 연출도 다시 나온다");
+            Assert.AreEqual(Newtonsoft.Json.JsonConvert.SerializeObject(p.Stage), Newtonsoft.Json.JsonConvert.SerializeObject(q.Stage));
+            Assert.AreEqual(2, q.Flags.Counter("k"));
+        }
+
+        [Test]
+        public void SaveStore_CorruptFile_IsEmptySlot()
+        {
+            string dir = TempDir();
+            var store = new VnSaveStore(dir, 2);
+            System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "slot_01.json"), "{ broken");
+            Assert.IsNull(store.Load(0));
+        }
+
+        static VnShownLine Shown(bool read) => new VnShownLine { Line = L("L001", "yume"), WasRead = read };
+
+        [Test]
+        public void Auto_WaitsBasePlusPerChar_AfterTyping()
+        {
+            var auto = new VnAutoAdvance(1f, 0.1f, 0.05f) { Mode = VnAdvanceMode.Auto };
+            auto.OnLineShown(Shown(false), 10);   // 1 + 1 = 2초
+            Assert.IsFalse(auto.Tick(5f, true, false, false), "찍는 중엔 대기 안 셈");
+            Assert.IsFalse(auto.Tick(1.5f, false, false, false));
+            Assert.IsTrue(auto.Tick(0.6f, false, false, false));
+            Assert.IsFalse(auto.Tick(10f, false, true, false), "선택지에서 기다림");
+            Assert.AreEqual(VnAdvanceMode.Auto, auto.Mode, "오토는 선택지에서 안 꺼짐");
+        }
+
+        [Test]
+        public void ReadSkip_StopsAtUnread_Skip_StopsAtChoice()
+        {
+            var auto = new VnAutoAdvance(1f, 0f, 0.05f) { Mode = VnAdvanceMode.ReadSkip };
+            auto.OnLineShown(Shown(true), 5);
+            Assert.IsTrue(auto.Tick(0.06f, true, false, false), "읽은 줄은 찍는 중이어도 넘김");
+            auto.OnLineShown(Shown(false), 5);
+            Assert.AreEqual(VnAdvanceMode.Manual, auto.Mode);
+
+            auto.Mode = VnAdvanceMode.Skip;
+            auto.OnLineShown(Shown(false), 5);
+            Assert.AreEqual(VnAdvanceMode.Skip, auto.Mode, "전체 스킵은 안 읽은 줄도 넘김");
+            Assert.IsFalse(auto.Tick(0.06f, false, true, false));
+            Assert.AreEqual(VnAdvanceMode.Manual, auto.Mode);
+
+            Assert.IsTrue(auto.Tick(0.06f, false, false, true), "Ctrl 홀드는 모드 무관");
+        }
+
         // ---------------- 직렬화
 
         [Test]

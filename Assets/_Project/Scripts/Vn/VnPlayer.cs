@@ -81,6 +81,9 @@ namespace RhythmCP.Vn
         public bool Ended { get; private set; }
         public bool AwaitingChoice => Current != null && Current.Line.IsChoice && !_chosen;
 
+        /// 지금 라인을 적용하기 직전의 무대. 세이브는 이것과 현재 라인 id를 저장한다 — 불러오면 그 라인을 다시 적용해 같은 화면이 된다.
+        public VnStageState StageBeforeCurrent { get; private set; }
+
         bool _chosen;
 
         /// displayName: 캐릭터 id → 표시 이름(카탈로그). readLog: 기읽 기록(없으면 null).
@@ -119,6 +122,9 @@ namespace RhythmCP.Vn
             Backlog.Add(new VnBacklogEntry { Name = Current.Name, Text = "▶ " + choice.text, Kind = VnSpeakerKind.Mc });
         }
 
+        /// 라인 id → 인덱스(세이브 위치 복원). 없으면 -1 — 라인이 지워진 세이브.
+        public int IndexOf(string lineId) => Episode.lines.FindIndex(l => l.id == lineId);
+
         public bool IsVisible(int index) => VnCondition.Evaluate(Episode.lines[index].condition, Flags);
 
         void ShowFrom(int index)
@@ -133,6 +139,7 @@ namespace RhythmCP.Vn
 
             var line = Episode.lines[index];
             var shown = new VnShownLine { Index = index, Line = line, SpeakerId = line.speaker };
+            StageBeforeCurrent = VnSerializer.Clone(Stage);
             ApplyStage(Stage, line, shown);
 
             if (line.speaker == VnIds.Narration || string.IsNullOrEmpty(line.speaker))

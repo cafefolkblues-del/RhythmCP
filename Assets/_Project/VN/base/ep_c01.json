@@ -1,0 +1,26 @@
+{
+  "meta": { "id": "ep_c01", "route": "common", "epIndex": 1, "edition": "base" },
+  "cast": [
+    { "id": "yume", "honorific": "식객" },
+    { "id": "nemu", "honorific": "주인님" },
+    { "id": "madoromi", "honorific": "손님" }
+  ],
+  "lines": [
+    { "id": "L001", "speaker": "narration", "text": "저택의 시계가 멈춰 있었다.", "bg": "hall.fade", "bgm": "theme_a", "fx": ["fade"] },
+    { "id": "L002", "speaker": "yume", "text": "앉아요. 혼자 두지 마.", "expr": "soft", "pos": "left" },
+    { "id": "L003", "speaker": "nemu", "text": "웃어요. 웃는다고 폭풍이 가시지 않으니까.", "pos": "right" },
+    { "id": "L004", "speaker": "mc", "text": "…(대답하지 않는다)" },
+    { "id": "L005", "speaker": "yume", "text": "…주인님, 듣고 있어요?", "expr": "pout", "fx": ["shake"] },
+    { "id": "L006", "speaker": "mc", "as": "nemu", "text": "…(무엇을 할까)",
+      "choice": [
+        { "text": "창밖을 본다", "add": { "foreshadow.hall": 1 } },
+        { "text": "문을 살핀다", "set": { "saw_lock": true } }
+      ] },
+    { "id": "L007", "speaker": "nemu", "text": "자물쇠, 봤죠? 안에서 잠겨 있었어요.", "if": { "saw_lock": "true" } },
+    { "id": "L008", "speaker": "yume", "text": "창밖엔 아무것도 없어요. 아무것도.", "if": { "foreshadow.hall": ">=1" } },
+    { "id": "L009", "speaker": "narration", "text": "두 사람이 자리를 떴다.", "exit": ["yume", "nemu"] },
+    { "id": "L010", "speaker": "madoromi", "text": "어머, 흥미로운 손님이네.", "pos": "center", "cg": "cg_earbud", "fx": ["colorBleed"] },
+    { "id": "L011", "speaker": "mc", "text": "…" , "cg": "off" },
+    { "id": "L012", "speaker": "narration", "text": "음악이 멎었다.", "bgm": "stop", "bg": "room", "exit": ["madoromi"] }
+  ]
+}

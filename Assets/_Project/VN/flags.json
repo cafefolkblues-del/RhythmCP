@@ -1,0 +1,6 @@
+{
+  "flags": [
+    { "id": "foreshadow.hall", "kind": "counter", "description": "샘플: 복도 복선 개방도" },
+    { "id": "saw_lock", "kind": "bool", "description": "샘플: 문 자물쇠를 살펴봤다" }
+  ]
+}
