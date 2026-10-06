@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using NUnit.Framework;
 using RhythmCP.Chart;
@@ -6,129 +7,177 @@ using RhythmCP.ChartEditing;
 
 namespace RhythmCP.Tests
 {
+    /// 2단계 패턴 방식 자동 배치 규칙 고정.
     public class AutoCharterTests
     {
-        // 120BPM, offset 0 → 1박 = 0.5초
+        // 120BPM, offset 0 → 1박 = 0.5초, 1마디 = 2초
         static readonly TempoMap Tempo = new TempoMap(new List<BpmPoint> { new BpmPoint { beat = 0, bpm = 120 } }, 0);
 
-        static AnalysisData.Onset On(double sec, double strength, string band = "high", double sustainSec = 0.05) =>
-            new AnalysisData.Onset { tMs = (int)System.Math.Round(sec * 1000), strength = strength, band = band, sustainMs = (int)(sustainSec * 1000) };
+        static PatternLibrary Seed() => PatternLibrary.Load("Assets/_Project/Data/AutoChart/patterns_easy.json");
 
-        static AnalysisData Analysis(double durationSec, params AnalysisData.Onset[] onsets) => new AnalysisData
+        static AnalysisData.Onset On(double beat, double strength = 1, string band = "high", double sustainSec = 0.05) =>
+            new AnalysisData.Onset { tMs = (int)System.Math.Round(Tempo.BeatToSec(beat) * 1000), strength = strength, band = band, sustainMs = (int)(sustainSec * 1000) };
+
+        static AnalysisData Analysis(int bars, IEnumerable<AnalysisData.Onset> onsets, string label = "A") => new AnalysisData
         {
-            durationMs = (int)(durationSec * 1000),
-            onsets = onsets.ToList(),
-            segments = new List<AnalysisData.Segment> { new AnalysisData.Segment { startMs = 0, endMs = (int)(durationSec * 1000), energy = 1 } },
+            durationMs = bars * 2000,
+            onsets = onsets.OrderBy(o => o.tMs).ToList(),
+            segments = new List<AnalysisData.Segment> { new AnalysisData.Segment { startMs = 0, endMs = bars * 2000, energy = 1, label = label } },
         };
 
-        static AutoChartParams NoHearts() => new AutoChartParams { heartIntervalSec = 0 };
-
-        [Test]
-        public void Budget_FollowsTargetNps()
+        static AutoChartParams P(System.Action<AutoChartParams> tweak = null)
         {
-            // 20초, 8분음표마다 온셋(초당 4개) → 목표 1.5 NPS면 약 30개
-            var onsets = Enumerable.Range(0, 80).Select(i => On(i * 0.25, 0.5 + (i % 7) * 0.05)).ToArray();
-            var r = AutoCharter.Generate(Analysis(20, onsets), Tempo, NoHearts());
-            Assert.That(r.Notes.Count, Is.InRange(25, 31));
+            var p = new AutoChartParams { heartIntervalSec = 0, restEveryBars = 0, reuseSections = false };
+            tweak?.Invoke(p);
+            return p;
         }
 
         [Test]
-        public void MinGap_IsMaxOfHalfBeatAnd300ms()
+        public void SeedLibrary_Loads()
         {
-            // 1/4박(0.125초) 간격 온셋이 빽빽해도, 결과 노트 사이는 반 박(0.25초)·300ms 중 큰 값 = 0.3초 이상
-            var onsets = Enumerable.Range(0, 160).Select(i => On(i * 0.125, 1.0 - i * 0.001)).ToArray();
-            var r = AutoCharter.Generate(Analysis(20, onsets), Tempo, new AutoChartParams { heartIntervalSec = 0, targetNps = 10, segmentMaxNps = 10 });
-            var secs = r.Notes.Select(n => Tempo.BeatToSec(n.beat)).OrderBy(t => t).ToList();
-            for (int i = 1; i < secs.Count; i++) Assert.GreaterOrEqual(secs[i] - secs[i - 1], 0.3 - 1e-6);
+            var lib = Seed();
+            Assert.IsNotNull(lib);
+            Assert.That(lib.rhythms.Count, Is.GreaterThanOrEqualTo(16));
+            Assert.That(lib.lanes.Count, Is.GreaterThanOrEqualTo(9));
         }
 
         [Test]
-        public void SnapsToQuarterBeat_AndCountsOffGrid()
+        public void QuarterOnsets_PickQuarterLikePatterns_SilenceIsRest()
         {
-            // 1.02초 → 2.04박 → 2박(1/4 격자, 오차 0.04박), 3.2초 → 6.4박 → 6.5박(오차 0.1박) — 둘 다 1/8박 이내라 경고 아님
-            var r = AutoCharter.Generate(Analysis(10, On(1.02, 1), On(3.2, 0.9)), Tempo, NoHearts());
-            CollectionAssert.AreEqual(new[] { 2.0, 6.5 }, r.Notes.Select(n => n.beat).ToArray());
-            Assert.AreEqual(0, r.OffGridCount);
-
-            // 셋잇단 토글: 1/3박 근처는 셋잇단에 붙는다
-            var t = AutoCharter.Generate(Analysis(10, On(Tempo.BeatToSec(4 + 1.0 / 3), 1)), Tempo, new AutoChartParams { heartIntervalSec = 0, allowTriplets = true });
-            Assert.AreEqual(4 + 1.0 / 3, t.Notes[0].beat, 1e-9);
+            // 마디 0~1: 매 박 온셋, 마디 2: 무음
+            var onsets = Enumerable.Range(0, 8).Select(b => On(b));
+            var r = AutoCharter.Generate(Analysis(3, onsets), Tempo, P(p => p.targetNps = 2), Seed());
+            Assert.AreEqual("rest", r.BarRhythms[2]);
+            Assert.IsTrue(r.Notes.Where(n => n.beat < 8).All(n => n.beat == System.Math.Round(n.beat)), "박 위 노트만");
         }
 
         [Test]
-        public void Lanes_ByBand_RunKeepsLane_SwitchAfterTwoOpposite()
+        public void NoPatternThreeBarsInARow()
         {
-            // 0.5초(1박) 간격 = 한 런. low로 시작 → 하단 고정. high 1개는 무시, high 2연속에서 전환.
-            var r = AutoCharter.Generate(Analysis(10,
-                On(0.5, 1, "low"), On(1.0, 1, "high"), On(1.5, 1, "low"),
-                On(2.0, 1, "high"), On(2.5, 1, "high"), On(3.0, 1, "mid")), Tempo, NoHearts());
-            CollectionAssert.AreEqual(
-                new[] { Lane.Bottom, Lane.Bottom, Lane.Bottom, Lane.Bottom, Lane.Top, Lane.Top },
-                r.Notes.Select(n => n.lane).ToArray());
+            var onsets = Enumerable.Range(0, 32).Select(b => On(b)); // 8마디 내내 4분
+            var r = AutoCharter.Generate(Analysis(8, onsets), Tempo, P(p => p.targetNps = 2), Seed());
+            for (int i = 2; i < r.BarRhythms.Count; i++)
+                Assert.IsFalse(r.BarRhythms[i] == r.BarRhythms[i - 1] && r.BarRhythms[i] == r.BarRhythms[i - 2], $"마디 {i}");
         }
 
         [Test]
-        public void NewRun_TakesBandLane()
+        public void FastBpm_ExcludesEighthPatterns()
         {
-            // 2초 넘게 쉬면 새 런 → 대역 레인으로 다시 시작
-            var r = AutoCharter.Generate(Analysis(10, On(0.5, 1, "low"), On(4.0, 1, "high")), Tempo, NoHearts());
-            CollectionAssert.AreEqual(new[] { Lane.Bottom, Lane.Top }, r.Notes.Select(n => n.lane).ToArray());
+            // 200BPM: 반 박 = 0.15초 < 최소 0.3초 → 8분이 든 패턴은 후보에서 빠진다
+            var fast = new TempoMap(new List<BpmPoint> { new BpmPoint { beat = 0, bpm = 200 } }, 0);
+            var a = new AnalysisData
+            {
+                durationMs = 12000,
+                onsets = Enumerable.Range(0, 80).Select(i => new AnalysisData.Onset { tMs = (int)(fast.BeatToSec(i * 0.5) * 1000), strength = 1, band = "high" }).ToList(),
+                segments = new List<AnalysisData.Segment> { new AnalysisData.Segment { startMs = 0, endMs = 12000, energy = 1, label = "A" } },
+            };
+            var r = AutoCharter.Generate(a, fast, P(p => p.targetNps = 4), Seed());
+            var beats = r.Notes.Select(n => n.beat).OrderBy(b => b).ToList();
+            for (int i = 1; i < beats.Count; i++)
+                Assert.GreaterOrEqual(fast.BeatToSec(beats[i]) - fast.BeatToSec(beats[i - 1]), 0.3 - 1e-6);
         }
 
         [Test]
-        public void SustainedOnset_BecomesHold_EndingBeforeNextNote()
+        public void Lanes_FollowBand_KickBottomSnareTop()
         {
-            // 1초(2박)에 2초 지속 → 2박~6박이지만 다음 노트가 5박이라 4.5박에서 끊김(최소 간격 0.6박 → 반 박 내림)
-            var r = AutoCharter.Generate(Analysis(10, On(1.0, 1, "high", 2.0), On(2.5, 0.9, "high")), Tempo, NoHearts());
-            var hold = r.Notes.Single(n => n.type == NoteType.Hold);
-            Assert.AreEqual(2.0, hold.beat);
-            Assert.AreEqual(4.0, hold.endBeat, 1e-9);
-            Assert.LessOrEqual(hold.endBeat, 5.0 - 0.6);
+            // 킥(저음) 0·2박, 스네어(고음) 1·3박 반복
+            var onsets = Enumerable.Range(0, 16).Select(b => On(b, 1, b % 2 == 0 ? "low" : "high"));
+            var r = AutoCharter.Generate(Analysis(4, onsets), Tempo, P(p => p.targetNps = 2), Seed());
+            var onBeat = r.Notes.Where(n => n.type != NoteType.Heart).ToList();
+            int agree = onBeat.Count(n => (((int)n.beat % 2 == 0) ? Lane.Bottom : Lane.Top) == n.lane);
+            Assert.That(agree, Is.GreaterThanOrEqualTo(onBeat.Count * 0.75), $"대역 일치 {agree}/{onBeat.Count}");
         }
 
         [Test]
-        public void ShortSustain_StaysTap()
+        public void Lanes_MaxSameLane_AndFastPairsSameLane()
         {
-            var r = AutoCharter.Generate(Analysis(10, On(1.0, 1, "high", 0.3)), Tempo, NoHearts());
-            Assert.AreEqual(NoteType.Tap, r.Notes.Single().type);
+            // 전부 고음(상단 선호)이어도 같은 레인 4연속 제한, 반 박 쌍은 같은 레인
+            var onsets = Enumerable.Range(0, 64).Select(i => On(i * 0.5, i % 4 == 0 ? 1 : 0.6, "high"));
+            var r = AutoCharter.Generate(Analysis(8, onsets), Tempo, P(p => p.targetNps = 2.5), Seed());
+            var notes = r.Notes.OrderBy(n => n.beat).ToList();
+            int run = 1;
+            for (int i = 1; i < notes.Count; i++)
+            {
+                if (notes[i].beat - notes[i - 1].beat <= 0.5 + 1e-6) Assert.AreEqual(notes[i - 1].lane, notes[i].lane, $"반 박 쌍 {notes[i].beat}");
+                run = notes[i].lane == notes[i - 1].lane ? run + 1 : 1;
+                Assert.LessOrEqual(run, 4, $"같은 레인 연속 {notes[i].beat}");
+            }
         }
 
         [Test]
-        public void Hearts_RoughlyEveryInterval_InGaps()
+        public void RestBar_EveryNBars()
         {
-            var onsets = Enumerable.Range(0, 60).Select(i => On(i * 1.0, 1)).ToArray(); // 60초, 1초마다
-            var r = AutoCharter.Generate(Analysis(60, onsets), Tempo, new AutoChartParams());
-            var hearts = r.Notes.Where(n => n.type == NoteType.Heart).ToList();
-            Assert.That(hearts.Count, Is.InRange(1, 3));
-            foreach (var h in hearts)
-                Assert.IsFalse(r.Notes.Any(n => n != h && System.Math.Abs(n.beat - h.beat) < 0.6), "하트는 다른 노트와 최소 간격 유지");
+            var onsets = Enumerable.Range(0, 64).Select(b => On(b, 0.5)); // 16마디 내내 약한 4분
+            var r = AutoCharter.Generate(Analysis(16, onsets), Tempo, P(p => { p.restEveryBars = 8; p.restBonus = 3; }), Seed());
+            Assert.That(r.BarRhythms[7], Is.EqualTo("rest").Or.EqualTo("one"));
+            Assert.That(r.BarRhythms[15], Is.EqualTo("rest").Or.EqualTo("one"));
         }
 
         [Test]
-        public void Climax_PicksLoudest30s_StartsOnBar()
+        public void RepeatedSection_ReusesPatterns()
         {
-            var a = Analysis(90);
+            // A(4마디) B(4마디) A(4마디): A의 리듬이 같으면 두 번째 A는 첫 A와 같은 패턴
+            var rnd = new System.Random(7);
+            var aRhythm = Enumerable.Range(0, 4).Select(_ => Enumerable.Range(0, 8).Where(__ => rnd.NextDouble() < 0.5).Select(k => k * 0.5).ToList()).ToList();
+            var onsets = new List<AnalysisData.Onset>();
+            for (int bar = 0; bar < 12; bar++)
+            {
+                var src = bar < 4 || bar >= 8 ? aRhythm[bar % 4] : new List<double> { 0, 2 };
+                onsets.AddRange(src.Select(pos => On(bar * 4 + pos, 0.9, pos % 1 == 0 ? "low" : "high")));
+            }
+            var a = Analysis(12, onsets);
             a.segments = new List<AnalysisData.Segment>
             {
-                new AnalysisData.Segment { startMs = 0, endMs = 40000, energy = 0.3 },
-                new AnalysisData.Segment { startMs = 40000, endMs = 75000, energy = 1.0 },
-                new AnalysisData.Segment { startMs = 75000, endMs = 90000, energy = 0.4 },
+                new AnalysisData.Segment { startMs = 0, endMs = 8000, energy = 1, label = "A" },
+                new AnalysisData.Segment { startMs = 8000, endMs = 16000, energy = 1, label = "B" },
+                new AnalysisData.Segment { startMs = 16000, endMs = 24000, energy = 1, label = "A" },
             };
-            var r = AutoCharter.Generate(a, Tempo, NoHearts());
-            Assert.IsNotNull(r.Climax);
-            Assert.AreEqual(0, r.Climax.startBeat % 4, "마디 시작");
-            double start = Tempo.BeatToSec(r.Climax.startBeat), end = Tempo.BeatToSec(r.Climax.endBeat);
-            Assert.That(start, Is.InRange(40.0, 45.0));
-            Assert.AreEqual(30.0, end - start, 0.5);
+            var r = AutoCharter.Generate(a, Tempo, P(p => p.reuseSections = true), Seed());
+            CollectionAssert.AreEqual(r.BarRhythms.Take(4).ToList(), r.BarRhythms.Skip(8).Take(4).ToList());
+        }
+
+        [Test]
+        public void DownbeatShift_FindsKickPhase()
+        {
+            // 킥이 매 마디 2박째(위상 1)에 → +1박 추천
+            var onsets = Enumerable.Range(0, 8).Select(bar => On(bar * 4 + 1, 1, "low"))
+                .Concat(Enumerable.Range(0, 32).Select(b => On(b, 0.3, "high")));
+            Assert.AreEqual(1, BarGrid.EstimateDownbeatShift(Analysis(8, onsets), Tempo));
+        }
+
+        [Test]
+        public void SustainedOnset_BecomesHold()
+        {
+            var onsets = new[] { On(0, 1, "low", 1.6), On(4, 1), On(6, 1) };
+            var r = AutoCharter.Generate(Analysis(2, onsets), Tempo, P(p => p.targetNps = 1), Seed());
+            var hold = r.Notes.FirstOrDefault(n => n.type == NoteType.Hold);
+            Assert.IsNotNull(hold);
+            Assert.AreEqual(0, hold.beat);
+            Assert.GreaterOrEqual(hold.endBeat, 1.0);
+        }
+
+        [Test]
+        public void Harvest_AddsOnlyNewPatterns()
+        {
+            var lib = Seed();
+            int before = lib.rhythms.Count;
+            var (id1, _, added1) = lib.Harvest(new List<double> { 0, 1, 2, 3 }, "AABB");
+            Assert.AreEqual("quarters", id1);
+            Assert.IsFalse(added1);
+            var (id2, lane2, added2) = lib.Harvest(new List<double> { 0, 0.5, 1.5, 3 }, "ABAB");
+            Assert.IsTrue(added2);
+            Assert.AreEqual(before + 1, lib.rhythms.Count);
+            Assert.AreEqual("ABAB", lane2);
+            Assert.IsTrue(id2.StartsWith("h_"));
         }
 
         [Test]
         public void SameInput_SameOutput()
         {
-            var onsets = Enumerable.Range(0, 50).Select(i => On(i * 0.37, (i * 37 % 11) / 11.0, i % 3 == 0 ? "low" : "high", i % 5 == 0 ? 1.2 : 0.1)).ToArray();
-            var a = Analysis(20, onsets);
-            string x = ChartSerializer.ToJson(new ChartData { notes = AutoCharter.Generate(a, Tempo, new AutoChartParams()).Notes });
-            string y = ChartSerializer.ToJson(new ChartData { notes = AutoCharter.Generate(a, Tempo, new AutoChartParams()).Notes });
+            var onsets = Enumerable.Range(0, 60).Select(i => On(i * 0.5, (i * 37 % 11) / 11.0, i % 3 == 0 ? "low" : "high"));
+            var a = Analysis(8, onsets);
+            string x = string.Join(",", AutoCharter.Generate(a, Tempo, new AutoChartParams(), Seed()).Notes.Select(n => $"{n.beat}{n.lane}{n.type}"));
+            string y = string.Join(",", AutoCharter.Generate(a, Tempo, new AutoChartParams(), Seed()).Notes.Select(n => $"{n.beat}{n.lane}{n.type}"));
             Assert.AreEqual(x, y);
         }
     }

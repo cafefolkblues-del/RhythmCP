@@ -63,6 +63,9 @@ namespace RhythmCP.ChartEditing
         /// 분석 사이드카(analysis.json). 없으면 null — 자동 채보 패널에서 [분석 실행].
         public AnalysisData Analysis { get; private set; }
         public AutoChartParams AutoParams => _autoChart.Params;
+
+        /// 마지막 자동 생성 결과(마디별 패턴 ID·지표). 눈금 띠가 마디마다 패턴 ID를 보여준다. 다른 곡을 열면 지운다.
+        public AutoChartResult LastAutoResult { get; private set; }
         public bool IsAnalyzing => _analysisRunner.IsRunning;
         public string AnalysisStage => _analysisRunner.Stage;
 
@@ -143,6 +146,7 @@ namespace RhythmCP.ChartEditing
             Selection.Clear();
             Waveform = LoadWaveform(song.Clip);
             Analysis = AnalysisData.Read(ChartFileStore.AnalysisPathFor(song));
+            LastAutoResult = null;
             CursorSec = 0;
             _timeline.Follow(0);
             Revalidate();
@@ -325,7 +329,10 @@ namespace RhythmCP.ChartEditing
         public void GenerateAuto()
         {
             if (Analysis == null) { Message("먼저 분석을 실행하세요"); return; }
-            var result = AutoCharter.Generate(Analysis, Document.Tempo, AutoParams);
+            var library = PatternLibrary.Load(_autoChart.EasyPatternsPath);
+            if (library == null) { Message("패턴 라이브러리 없음: " + _autoChart.EasyPatternsPath); return; }
+            var result = AutoCharter.Generate(Analysis, Document.Tempo, AutoParams, library);
+            LastAutoResult = result;
             Document.Edit(d =>
             {
                 d.notes = result.Notes;
@@ -334,8 +341,25 @@ namespace RhythmCP.ChartEditing
             Selection.Clear();
             string bpmHint = Math.Abs(Document.Tempo.BpmAtBeat(0) - Analysis.bpm) > 0.5 ? $" · 채보 BPM이 분석({Analysis.bpm:0.##})과 다름" : "";
             string warn = result.Warnings.Count > 0 ? " · " + string.Join(" / ", result.Warnings) : "";
-            Message($"자동 생성: 노트 {result.Notes.Count}개 (Ctrl+Z로 되돌리기){bpmHint}{warn}");
+            Message($"자동 생성 (Ctrl+Z로 되돌리기) · {result.Metrics}{bpmHint}{warn}");
             NotifyAll();
+        }
+
+        /// 선택한 노트(한 마디 안)를 리듬·레인 패턴으로 라이브러리에 저장 — 손본 채보가 라이브러리를 키운다(경로 다).
+        public void HarvestSelection()
+        {
+            if (Selection.Count == 0) { Message("저장할 노트를 먼저 선택하세요(한 마디 안)"); return; }
+            var notes = Selection.OrderBy(n => n.beat).ToList();
+            double barStart = Math.Floor(notes[0].beat / BeatGrid.BeatsPerBar) * BeatGrid.BeatsPerBar;
+            if (notes[notes.Count - 1].beat >= barStart + BeatGrid.BeatsPerBar) { Message("패턴은 한 마디 안의 노트만 저장할 수 있어요"); return; }
+
+            var beats = notes.Select(n => Math.Round((n.beat - barStart) * 1e6) / 1e6).ToList();
+            var lanes = new string(notes.Select(n => n.lane == notes[0].lane ? 'A' : 'B').ToArray());
+            var library = PatternLibrary.Load(_autoChart.EasyPatternsPath);
+            if (library == null) { Message("패턴 라이브러리 없음"); return; }
+            var (rhythmId, laneId, added) = library.Harvest(beats, lanes);
+            if (added) System.IO.File.WriteAllText(_autoChart.EasyPatternsPath, library.ToJson());
+            Message(added ? $"패턴 저장: 리듬 {rhythmId} · 레인 {laneId}" : $"이미 있는 패턴: 리듬 {rhythmId} · 레인 {laneId}");
         }
 
         void PollAnalysis()
@@ -526,6 +550,7 @@ namespace RhythmCP.ChartEditing
             if (kb.digit3Key.wasPressedThisFrame) SetTool(EditTool.Heart);
             if (kb.digit4Key.wasPressedThisFrame) SetTool(EditTool.Mash);
             if (kb.fKey.wasPressedThisFrame) ToggleFast();
+            if (kb.pKey.wasPressedThisFrame) HarvestSelection(); // P: 선택한 마디를 패턴 라이브러리에 저장
             if (kb.deleteKey.wasPressedThisFrame || kb.backspaceKey.wasPressedThisFrame) RemoveNotes(Selection);
 
             double cursorBeat = SnapBeat(Document.Tempo.SecToBeat(CursorSec));

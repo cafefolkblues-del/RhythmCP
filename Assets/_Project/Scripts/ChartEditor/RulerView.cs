@@ -76,13 +76,23 @@ namespace RhythmCP.ChartEditing
 
             foreach (var line in BeatGrid.Lines(tempo, Timeline.ViewStartSec, Timeline.ViewEndSec, 1))
                 if (line.Kind == GridLineKind.Bar)
-                    Label(ref used, Timeline.TimeToX(line.Time) + 4f, -2f, ((long)(line.Beat / BeatGrid.BeatsPerBar) + 1).ToString(), Color.white);
+                    Label(ref used, Timeline.TimeToX(line.Time) + 4f, -2f, BarLabel(line.Beat), Color.white);
 
             foreach (var b in Session.Document.Data.bpms)
                 // 마디 번호와 같은 자리(0박 등)에 겹치지 않게 BPM은 아래 칸.
                 Label(ref used, Timeline.TimeToX(tempo.BeatToSec(b.beat)) + 4f, -26f, $"BPM {b.bpm:0.##}", _bpmMark);
 
             for (int i = used; i < _labels.Count; i++) _labels[i].gameObject.SetActive(false);
+        }
+
+        /// 마디 번호 + (자동 생성 직후면) 그 마디에 고른 리듬·레인 패턴 ID.
+        string BarLabel(double beat)
+        {
+            int bar = (int)(beat / BeatGrid.BeatsPerBar);
+            var r = Session.LastAutoResult;
+            string text = (bar + 1).ToString();
+            if (r == null || bar < 0 || bar >= r.BarRhythms.Count) return text;
+            return r.BarLanes[bar] == null ? $"{text}  {r.BarRhythms[bar]}" : $"{text}  {r.BarRhythms[bar]} · {r.BarLanes[bar]}";
         }
 
         void Label(ref int used, float x, float y, string text, Color color)

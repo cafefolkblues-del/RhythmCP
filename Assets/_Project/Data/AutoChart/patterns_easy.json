@@ -1,0 +1,33 @@
+{
+  "difficulty": "EASY",
+  "note": "1마디(4박) 단위 패턴. beats = 마디 안 박 위치. role: groove/rest/fill/pickup. 레인 템플릿 A = 그 마디 시작 레인, B = 반대(노트 수만큼 반복 적용). source: seed(초안) / harvest(에디터에서 수집).",
+  "rhythms": [
+    { "id": "rest",       "beats": [],                     "role": "rest",   "source": "seed" },
+    { "id": "one",        "beats": [0],                    "role": "rest",   "source": "seed" },
+    { "id": "half",       "beats": [0, 2],                 "role": "groove", "source": "seed" },
+    { "id": "backbeat",   "beats": [1, 3],                 "role": "groove", "source": "seed" },
+    { "id": "three_a",    "beats": [0, 1, 2],              "role": "groove", "source": "seed" },
+    { "id": "three_b",    "beats": [0, 2, 3],              "role": "groove", "source": "seed" },
+    { "id": "quarters",   "beats": [0, 1, 2, 3],           "role": "groove", "source": "seed" },
+    { "id": "dotted",     "beats": [0, 1.5, 3],            "role": "groove", "source": "seed" },
+    { "id": "syncop",     "beats": [0, 1.5, 2, 3],         "role": "groove", "source": "seed" },
+    { "id": "pair_end",   "beats": [0, 1, 2, 2.5],         "role": "fill",   "source": "seed" },
+    { "id": "pair_mid",   "beats": [0, 1, 1.5, 3],         "role": "groove", "source": "seed" },
+    { "id": "pair_start", "beats": [0, 0.5, 2, 3],         "role": "groove", "source": "seed" },
+    { "id": "pickup",     "beats": [0, 2, 3, 3.5],         "role": "pickup", "source": "seed" },
+    { "id": "five",       "beats": [0, 1, 2, 2.5, 3],      "role": "fill",   "source": "seed" },
+    { "id": "gallop",     "beats": [0, 0.5, 1, 2, 3],      "role": "fill",   "source": "seed" },
+    { "id": "trip_q",     "beats": [0, 0.6666666666666666, 1.3333333333333333, 2], "role": "groove", "triplet": true, "source": "seed" }
+  ],
+  "lanes": [
+    { "id": "A*",   "lanes": "A",    "source": "seed" },
+    { "id": "AB",   "lanes": "AB",   "source": "seed" },
+    { "id": "AABB", "lanes": "AABB", "source": "seed" },
+    { "id": "AAB",  "lanes": "AAB",  "source": "seed" },
+    { "id": "ABB",  "lanes": "ABB",  "source": "seed" },
+    { "id": "ABA",  "lanes": "ABA",  "source": "seed" },
+    { "id": "ABBA", "lanes": "ABBA", "source": "seed" },
+    { "id": "AAAB", "lanes": "AAAB", "source": "seed" },
+    { "id": "ABAA", "lanes": "ABAA", "source": "seed" }
+  ]
+}

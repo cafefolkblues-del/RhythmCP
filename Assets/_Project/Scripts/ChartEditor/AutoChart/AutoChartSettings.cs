@@ -14,8 +14,12 @@ namespace RhythmCP.ChartEditing
         [Tooltip("프로젝트 루트 기준 분석기 경로.")]
         [SerializeField] string _analyzerPath = "Tools/Analysis/analyze.py";
 
+        [Tooltip("EASY 패턴 라이브러리(JSON). 에디터의 '패턴으로 저장'이 이 파일에 덧붙인다.")]
+        [SerializeField] string _easyPatternsPath = "Assets/_Project/Data/AutoChart/patterns_easy.json";
+
         public AutoChartParams Params => _params;
         public string PythonCommand => _pythonCommand;
         public string AnalyzerPath => _analyzerPath;
+        public string EasyPatternsPath => _easyPatternsPath;
     }
 }
