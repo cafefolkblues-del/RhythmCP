@@ -15,7 +15,7 @@ namespace RhythmCP.ChartEditing
 
         [Tooltip("최소 노트 간격 = max(이 박, 이 초) — 이보다 촘촘한 패턴은 그 곡 BPM에서 후보에서 빠진다.")]
         public double minGapBeats = 0.5;
-        public double minGapSec = 0.3;
+        public double minGapSec = 0.2;
 
         [Header("리듬 패턴 점수")]
         [Tooltip("패턴 자리에 실제 온셋이 있는 만큼(세기 합, 첫 박·박 자리 가중).")]

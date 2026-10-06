@@ -17,14 +17,27 @@ MonoBehaviour:
     segmentMinNps: 0.5
     segmentMaxNps: 2.5
     minGapBeats: 0.5
-    minGapSec: 0.3
-    runGapBeats: 1
-    runGapSec: 0.4
-    laneSwitchMinRun: 2
+    minGapSec: 0.2
+    hitWeight: 1
+    emptyPenalty: 0.4
+    missWeight: 0.6
+    strongOnset: 0.4
+    densityWeight: 0.5
+    repeatPenalty: 0.4
+    phraseBonus: 0.3
+    restEveryBars: 8
+    restBonus: 1
+    hitToleranceBeats: 0.125
+    fastPairBeats: 0.5
+    maxSameLane: 4
+    bandWeight: 1
+    laneRepeatPenalty: 0.3
+    reuseSections: 1
+    reuseBonus: 0.5
     holdMinBeats: 1
     heartIntervalSec: 20
     allowTriplets: 0
-    offGridFlagBeats: 0.125
     climaxSec: 30
   _pythonCommand: py
   _analyzerPath: Tools/Analysis/analyze.py
+  _easyPatternsPath: Assets/_Project/Data/AutoChart/patterns_easy.json
