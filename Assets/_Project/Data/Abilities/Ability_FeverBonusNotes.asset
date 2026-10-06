@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Ability_FeverBonusNotes
   m_EditorClassIdentifier: RhythmCP.Runtime::RhythmCP.Character.FeverBonusNotesAbility
   _description: 'TEMP: fever start -> bonus notes inside the fever window. Replace
-    with char2''s real ability.'
+    with nemu''s real ability.'
   _modifiers:
     perfectWindowAddMs: 0
     greatWindowAddMs: 0

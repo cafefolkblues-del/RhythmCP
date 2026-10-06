@@ -24,7 +24,7 @@ namespace RhythmCP.Character
         [Tooltip("없는 상태는 CharacterReactionView가 임시 색 + 상태 이름으로 표시.")]
         [SerializeField] List<ReactionSprite> _reactions = new List<ReactionSprite>();
 
-        [Tooltip("비워두면 특수능력 없음(char1·char3 TBD).")]
+        [Tooltip("비워두면 특수능력 없음(yume·madoromi TBD).")]
         [SerializeField] AbilityDefinition _ability;
 
         public string CharacterId => _characterId;

@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b3886b8869a4b504cafe4af654ae5302, type: 3}
-  m_Name: Char_char3
+  m_Name: Char_madoromi
   m_EditorClassIdentifier: RhythmCP.Runtime::RhythmCP.Character.CharacterDefinition
-  _characterId: char3
-  _displayName: char3
+  _characterId: madoromi
+  _displayName: "\uB9C8\uB3C4\uB85C\uBBF8 \uADF8\uB9AC"
   _maxHp: 100
   _reactions: []
   _ability: {fileID: 0}

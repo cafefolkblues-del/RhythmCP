@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b3886b8869a4b504cafe4af654ae5302, type: 3}
-  m_Name: Char_char2
+  m_Name: Char_yume
   m_EditorClassIdentifier: RhythmCP.Runtime::RhythmCP.Character.CharacterDefinition
-  _characterId: char2
-  _displayName: char2
+  _characterId: yume
+  _displayName: "\uC720\uBA54 \uBE14\uB791"
   _maxHp: 100
   _reactions: []
-  _ability: {fileID: 11400000, guid: 80797f2ec32c97b478969b0620d0843d, type: 2}
+  _ability: {fileID: 0}

@@ -6,7 +6,7 @@ using UnityEngine;
 
 namespace RhythmCP.Character
 {
-    /// ⚠️ 임시 능력(2026-09-30): 피버 발동마다 피버 구간 안에 보너스 노트를 추가한다. char2 실제 능력이 정해지면 교체.
+    /// ⚠️ 임시 능력(2026-09-30): 피버 발동마다 피버 구간 안에 보너스 노트를 추가한다. nemu(네무) 실제 능력이 정해지면 교체.
     /// 보너스 노트 = 점수·콤보에는 들어가고, 놓쳐도 벌칙 없음, 정확도·히트율·등급 분모에서 제외.
     [CreateAssetMenu(menuName = "RhythmCP/Ability/Fever Bonus Notes (temp)", fileName = "Ability_FeverBonusNotes")]
     public class FeverBonusNotesAbility : AbilityDefinition
