@@ -29,8 +29,17 @@ namespace RhythmCP.ChartEditing
             var asset = song.GetChart(difficulty);
             if (asset != null) path = UnityEditor.AssetDatabase.GetAssetPath(asset);
 #endif
-            path ??= $"Assets/_Project/Charts/{song.SongId}_{difficulty.ToString().ToLowerInvariant()}.json";
+            path ??= $"{ChartFolderFor(song)}/{song.SongId}_{difficulty.ToString().ToLowerInvariant()}.json";
             return new ChartFileStore(path);
+        }
+
+        /// 곡 에셋이 _Local 폴더(로컬 전용 테스트 곡, git 제외)에 있으면 채보도 Charts/_Local로 — 따로 gitignore를 안 만져도 되게.
+        static string ChartFolderFor(SongDefinition song)
+        {
+#if UNITY_EDITOR
+            if (UnityEditor.AssetDatabase.GetAssetPath(song).Contains("/_Local/")) return "Assets/_Project/Charts/_Local";
+#endif
+            return "Assets/_Project/Charts";
         }
 
         public ChartData Load()

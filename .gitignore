@@ -50,3 +50,8 @@ Assets/Plugins/NuGet.meta
 # 에셋스토어 임시 UI (SlimUI Modern Menu). 공개 레포 재배포 방지 — 로컬에만 둔다.
 Assets/SlimUI/
 Assets/SlimUI.meta
+
+# 로컬 전용 테스트 에셋(저작권 있는 임시 곡 등). 어느 _Project 하위든 _Local 폴더는 추적 제외.
+#   곡: Audio/Music/_Local/ · 곡 에셋: Data/Songs/_Local/ · 채보: Charts/_Local/ (채보 에디터가 자동 배치)
+Assets/_Project/**/_Local/
+Assets/_Project/**/_Local.meta
