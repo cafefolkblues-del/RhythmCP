@@ -30,6 +30,9 @@ namespace RhythmCP.Rhythm
         public double SongTime => _songTime;
         public double ClipLength => _source.clip != null ? _source.clip.length : 0;
 
+        /// 곡 시각 → 그 순간이 울리는 dspTime. 보조음(채보 에디터 타격음·메트로놈)을 샘플 단위로 예약 재생할 때 쓴다.
+        public double SongTimeToDsp(double songTime) => _startDsp + songTime;
+
         /// 노트 표시용 시각. 화면 오프셋만큼 앞선 시각으로 그린다.
         public double VisualTime => _songTime + (_applyUserOffsets ? GameSettings.VisualOffsetSec : 0);
 
@@ -45,6 +48,17 @@ namespace RhythmCP.Rhythm
             _source.PlayScheduled(_startDsp);
             ResetInterpolation(-leadInSec);
             _running = true;
+        }
+
+        /// 원하는 곡 위치부터 재생(채보 에디터의 커서 재생). 일시정지 후 재개와 같은 경로를 써서 기준점 계산이 하나로 유지된다.
+        public void PlayFrom(AudioClip clip, double songTime)
+        {
+            _source.clip = clip;
+            _source.loop = false;
+            _running = true;
+            IsPaused = true;
+            _pausedSongTime = songTime;
+            Resume();
         }
 
         public void Stop()

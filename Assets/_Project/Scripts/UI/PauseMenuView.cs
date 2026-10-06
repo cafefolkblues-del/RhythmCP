@@ -28,7 +28,15 @@ namespace RhythmCP.UI
         {
             _panel.SetActive(false);
             _countdown.gameObject.SetActive(false);
-            _exit.interactable = false;
+
+            // 허브 전까지 비활성. 채보 에디터 테스트 플레이 중엔 에디터로 돌아가는 버튼.
+            _exit.interactable = PlaytestHandoff.Active;
+            if (PlaytestHandoff.Active)
+            {
+                var label = _exit.GetComponentInChildren<TMP_Text>();
+                if (label != null) label.text = "에디터로";
+                _exit.onClick.AddListener(PlaytestHandoff.ReturnToEditor);
+            }
         }
 
         void OnEnable()

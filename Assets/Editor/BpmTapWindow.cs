@@ -18,7 +18,7 @@ namespace RhythmCP.EditorTools
         const double StartLeadSeconds = 0.1;
         const double ScheduleAheadSeconds = 0.15;
         const double TapResetGapSeconds = 2.0;
-        const int MinTapsForResult = 4;
+        const int MinTapsForResult = RhythmCP.Chart.BpmEstimator.MinTaps;
 
         [SerializeField] AudioClip _clip;
         [SerializeField] float _startAt;
@@ -185,48 +185,10 @@ namespace RhythmCP.EditorTools
         }
 
         /// t_i = a + b·i 최소제곱. b = 박 간격, a mod b = 첫 박 위치.
-        void Fit()
-        {
-            _hasFit = false;
-            int n = _taps.Count;
-            if (n < MinTapsForResult) return;
+        // 계산은 런타임 공용 BpmEstimator로 옮김(채보 에디터와 같은 식을 쓰도록).
+        void Fit() => _hasFit = RhythmCP.Chart.BpmEstimator.TryFit(_taps, out _fitBpm, out _fitOffset, out _fitJitterMs);
 
-            double meanI = (n - 1) / 2.0, meanT = 0.0;
-            foreach (double t in _taps) meanT += t;
-            meanT /= n;
-
-            double sxy = 0.0, sxx = 0.0;
-            for (int i = 0; i < n; i++)
-            {
-                sxy += (i - meanI) * (_taps[i] - meanT);
-                sxx += (i - meanI) * (i - meanI);
-            }
-
-            double period = sxy / sxx;
-            if (period <= 0.0) return;
-            double intercept = meanT - period * meanI;
-
-            double sse = 0.0;
-            for (int i = 0; i < n; i++)
-            {
-                double r = _taps[i] - (intercept + period * i);
-                sse += r * r;
-            }
-
-            _fitBpm = 60.0 / period;
-            _fitOffset = Mod(intercept, period);
-            _fitJitterMs = Math.Sqrt(sse / n) * 1000.0;
-            _hasFit = true;
-        }
-
-        /// BPM 을 고정했을 때 탭에 가장 잘 맞는 오프셋. 정수 BPM 으로 반올림한 뒤 다시 맞출 때 쓴다.
-        double FitOffsetFor(double bpm)
-        {
-            double period = 60.0 / bpm;
-            double sum = 0.0;
-            for (int i = 0; i < _taps.Count; i++) sum += _taps[i] - i * period;
-            return Mod(sum / _taps.Count, period);
-        }
+        double FitOffsetFor(double bpm) => RhythmCP.Chart.BpmEstimator.OffsetFor(_taps, bpm);
 
         static double Mod(double value, double period) => ((value % period) + period) % period;
 

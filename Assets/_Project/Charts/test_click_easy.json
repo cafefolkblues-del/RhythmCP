@@ -40,12 +40,12 @@
     },
     {
       "type": "Tap",
-      "lane": "Bottom",
+      "lane": "Top",
       "beat": 8.0
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 8.0
     },
     {
@@ -118,12 +118,12 @@
     },
     {
       "type": "Tap",
-      "lane": "Bottom",
+      "lane": "Top",
       "beat": 24.0
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 24.0
     },
     {
@@ -320,12 +320,12 @@
     },
     {
       "type": "Tap",
-      "lane": "Bottom",
+      "lane": "Top",
       "beat": 72.0
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 72.0
     },
     {
@@ -365,12 +365,12 @@
     },
     {
       "type": "Tap",
-      "lane": "Bottom",
+      "lane": "Top",
       "beat": 80.0
     },
     {
       "type": "Tap",
-      "lane": "Top",
+      "lane": "Bottom",
       "beat": 80.0
     },
     {

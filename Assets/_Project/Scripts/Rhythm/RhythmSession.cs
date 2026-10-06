@@ -48,6 +48,12 @@ namespace RhythmCP.Rhythm
 
         void Start()
         {
+            // 채보 에디터의 테스트 플레이면 인스펙터 지정 대신 에디터가 넘긴 곡·난이도로.
+            if (PlaytestHandoff.Active)
+            {
+                _song = PlaytestHandoff.Song;
+                _difficulty = PlaytestHandoff.Difficulty;
+            }
             _chart = ChartLoader.Load(_song.GetChart(_difficulty));
 
             // 순서 주의: 콤보가 피버보다 먼저 판정 이벤트를 받는다 → 피버를 발동시킨 그 타격은 배수 없이 계산되고

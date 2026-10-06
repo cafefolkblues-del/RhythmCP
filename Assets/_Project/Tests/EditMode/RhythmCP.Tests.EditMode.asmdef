@@ -3,6 +3,7 @@
     "rootNamespace": "RhythmCP.Tests",
     "references": [
         "RhythmCP.Runtime",
+        "RhythmCP.ChartEditor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
