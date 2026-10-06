@@ -59,3 +59,7 @@ Assets/_Project/**/_Local.meta
 # 파이썬 분석기 캐시
 __pycache__/
 *.pyc
+
+# 성인판 VN 스크립트·에셋 — 로컬 에디터/빌드 전용, 공개 레포 제외.
+Assets/_Project/VN/adult/
+Assets/_Project/VN/adult.meta
