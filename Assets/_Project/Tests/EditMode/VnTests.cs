@@ -172,27 +172,25 @@ namespace RhythmCP.Tests
             CollectionAssert.AreEqual(new[] { "앉아요.", "…(무엇을 할까)", "▶ 창밖을 본다" }, p.Backlog.Select(b => b.Text).ToArray());
         }
 
-        [TestCase(0, "L008")]
-        [TestCase(1, "L007")]
-        public void SampleEpisode_PlaysToEnd_BothChoices(int pick, string gatedLine)
+        /// 샘플은 에디터로 계속 고치는 파일이라 내용(어느 줄이 보이는지)은 검사하지 않는다 — 읽히고 끝까지 재생되는지만.
+        /// 진행 규칙 자체는 위의 코드 안 에피소드 테스트들이 맡는다.
+        [TestCase(0)]
+        [TestCase(1)]
+        public void SampleEpisode_ParsesAndPlaysToEnd(int pick)
         {
             string path = System.IO.Path.Combine(UnityEngine.Application.dataPath, "_Project/VN/base/ep_c01.json");
             var ep = VnSerializer.ReadEpisode(System.IO.File.ReadAllText(path));
             var p = Play(ep);
-            var seen = new List<string>();
-            p.LineShown += s => seen.Add(s.Line.id);
+            int shown = 0;
+            p.LineShown += _ => shown++;
             p.Begin();
-            for (int guard = 0; guard < 100 && !p.Ended; guard++)
+            for (int guard = 0; guard < 1000 && !p.Ended; guard++)
             {
-                if (p.AwaitingChoice) p.Choose(pick);
+                if (p.AwaitingChoice) p.Choose(System.Math.Min(pick, p.Current.Line.choice.Count - 1));
                 p.Advance();
             }
             Assert.IsTrue(p.Ended);
-            CollectionAssert.Contains(seen, gatedLine);
-            Assert.AreEqual(11, seen.Count, "if 라인 둘 중 하나만");
-            Assert.IsEmpty(p.Stage.actors);
-            Assert.IsNull(p.Stage.bgm);
-            Assert.AreEqual("room", p.Stage.bg);
+            Assert.Greater(shown, 0);
         }
 
         // ---------------- ③ 기읽·세이브·오토
@@ -272,7 +270,7 @@ namespace RhythmCP.Tests
         }
 
         [Test]
-        public void ReadSkip_StopsAtUnread_Skip_StopsAtChoice()
+        public void ReadSkip_StopsAtUnreadAndChoice_CtrlHoldAlwaysFast()
         {
             var auto = new VnAutoAdvance(1f, 0f, 0.05f) { Mode = VnAdvanceMode.ReadSkip };
             auto.OnLineShown(Shown(true), 5);
@@ -280,13 +278,45 @@ namespace RhythmCP.Tests
             auto.OnLineShown(Shown(false), 5);
             Assert.AreEqual(VnAdvanceMode.Manual, auto.Mode);
 
-            auto.Mode = VnAdvanceMode.Skip;
-            auto.OnLineShown(Shown(false), 5);
-            Assert.AreEqual(VnAdvanceMode.Skip, auto.Mode, "전체 스킵은 안 읽은 줄도 넘김");
+            auto.Mode = VnAdvanceMode.ReadSkip;
             Assert.IsFalse(auto.Tick(0.06f, false, true, false));
-            Assert.AreEqual(VnAdvanceMode.Manual, auto.Mode);
+            Assert.AreEqual(VnAdvanceMode.Manual, auto.Mode, "선택지에서 꺼짐");
 
             Assert.IsTrue(auto.Tick(0.06f, false, false, true), "Ctrl 홀드는 모드 무관");
+        }
+
+        [Test]
+        public void SkipToNextStop_StopsAtChoice_ThenEnd_KeepsStageFlags_NoReadMarks()
+        {
+            var log = new MemoryReadLog();
+            var a = L("L001", "yume"); a.pos = "left"; a.bg = "hall";
+            var b = L("L002", "nemu"); b.pos = "right"; b.bgm = "theme";
+            var ch = L("L003", "mc");
+            ch.choice = new List<VnChoice> { new VnChoice { text = "x", add = new Dictionary<string, int> { { "k", 1 } } } };
+            var d = L("L004", "yume"); d.exit = new List<string> { "nemu" };
+            var e = L("L005", "narration");
+            var p = Play(Episode(a, b, ch, d, e), null, log);
+            var shown = new List<string>();
+            p.LineShown += s => shown.Add(s.Line.id);
+            p.Begin();
+
+            Assert.AreEqual(2, p.SkipToNextStop());
+            Assert.AreEqual("L003", p.Current.Line.id);
+            Assert.IsTrue(p.AwaitingChoice);
+            Assert.AreEqual(0, p.SkipToNextStop(), "선택지에선 고르기 전까지 안 넘어감");
+            Assert.AreEqual("theme", p.Stage.bgm, "건너뛴 줄의 무대 지시도 쌓임");
+            Assert.AreEqual(2, p.Stage.actors.Count);
+            Assert.IsFalse(log.Read.Contains("ep_t:L002"), "건너뛴 줄은 읽음 처리 안 함");
+            Assert.IsTrue(log.Read.Contains("ep_t:L001"));
+
+            p.Choose(0);
+            p.SkipToNextStop();
+            Assert.IsTrue(p.Ended);
+            Assert.AreEqual("L005", p.Current.Line.id);
+            Assert.AreEqual(1, p.Flags.Counter("k"));
+            CollectionAssert.AreEqual(new[] { "yume" }, p.Stage.actors.Select(x => x.id).ToArray());
+            Assert.AreEqual(5, p.Backlog.Count - 1, "백로그엔 건너뛴 줄도 남음(+선택 1)");
+            Assert.IsFalse(p.IsJumping);
         }
 
         // ---------------- 직렬화

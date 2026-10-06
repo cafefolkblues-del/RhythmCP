@@ -4,8 +4,9 @@ using UnityEngine.UI;
 
 namespace RhythmCP.Vn
 {
-    /// 상단 메뉴바(와이어프레임 01): 오토 · 스킵 · 기읽 · 백로그 · 세이브 · 로드 · VN만.
-    /// 켜진 모드는 버튼 색으로 표시. 동작은 세션이 이벤트를 받아 처리한다.
+    /// 상단 메뉴바(와이어프레임 01): 오토 · 스킵 · 기읽 · 백로그 · 세이브 · 로드 · 설정.
+    /// "VN만 보기"는 설정 창으로 옮겼다(2026-10-07 플레이테스트 후). 스킵은 모드가 아니라 확인 팝업 → 다음 선택지까지 건너뛰기.
+    /// 켜진 모드(오토·기읽)는 버튼 색으로 표시 — 다른 씬과 같은 색(꺼짐 = 흰 반투명, 켜짐 = 분홍).
     public class VnMenuView : MonoBehaviour
     {
         [SerializeField] Button _auto;
@@ -14,16 +15,17 @@ namespace RhythmCP.Vn
         [SerializeField] Button _backlog;
         [SerializeField] Button _save;
         [SerializeField] Button _load;
-        [SerializeField] Button _vnOnly;
+        [SerializeField] Button _settings;
 
-        [SerializeField] Color _offColor = new Color(1f, 1f, 1f, 0.6f);
-        [SerializeField] Color _onColor = new Color(1f, 0.85f, 0.35f, 1f);
+        [SerializeField] Color _offColor = new Color(1f, 1f, 1f, 0.14f);
+        [SerializeField] Color _onColor = new Color(0.9f, 0.3f, 0.5f, 1f);
 
         public event Action<VnAdvanceMode> ModeClicked;
+        public event Action SkipClicked;
         public event Action BacklogClicked;
         public event Action SaveClicked;
         public event Action LoadClicked;
-        public event Action VnOnlyClicked;
+        public event Action SettingsClicked;
 
         void OnEnable()
         {
@@ -33,7 +35,7 @@ namespace RhythmCP.Vn
             _backlog.onClick.AddListener(OnBacklog);
             _save.onClick.AddListener(OnSave);
             _load.onClick.AddListener(OnLoad);
-            _vnOnly.onClick.AddListener(OnVnOnly);
+            _settings.onClick.AddListener(OnSettings);
         }
 
         void OnDisable()
@@ -44,25 +46,22 @@ namespace RhythmCP.Vn
             _backlog.onClick.RemoveListener(OnBacklog);
             _save.onClick.RemoveListener(OnSave);
             _load.onClick.RemoveListener(OnLoad);
-            _vnOnly.onClick.RemoveListener(OnVnOnly);
+            _settings.onClick.RemoveListener(OnSettings);
         }
 
         void OnAuto() => ModeClicked?.Invoke(VnAdvanceMode.Auto);
-        void OnSkip() => ModeClicked?.Invoke(VnAdvanceMode.Skip);
         void OnReadSkip() => ModeClicked?.Invoke(VnAdvanceMode.ReadSkip);
+        void OnSkip() => SkipClicked?.Invoke();
         void OnBacklog() => BacklogClicked?.Invoke();
         void OnSave() => SaveClicked?.Invoke();
         void OnLoad() => LoadClicked?.Invoke();
-        void OnVnOnly() => VnOnlyClicked?.Invoke();
+        void OnSettings() => SettingsClicked?.Invoke();
 
         public void ShowMode(VnAdvanceMode mode)
         {
             Tint(_auto, mode == VnAdvanceMode.Auto);
-            Tint(_skip, mode == VnAdvanceMode.Skip);
             Tint(_readSkip, mode == VnAdvanceMode.ReadSkip);
         }
-
-        public void ShowVnOnly(bool on) => Tint(_vnOnly, on);
 
         void Tint(Button button, bool on)
         {

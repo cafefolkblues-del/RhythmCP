@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7f98dcf7860d12448b21cae879bc8d57, type: 3}
+  m_Name: VnCatalog
+  m_EditorClassIdentifier: RhythmCP.Runtime::RhythmCP.Vn.VnCatalog
+  _characters:
+  - {fileID: 11400000, guid: 0abf0be4262371c4185cbf1c371a9305, type: 2}
+  - {fileID: 11400000, guid: 51b672b3cd40fcf448c883e2908a24c7, type: 2}
+  - {fileID: 11400000, guid: 370c4b1f12bd64548ad2b11b910724a7, type: 2}
+  _backgrounds:
+  - id: hall
+    sprite: {fileID: 0}
+  - id: room
+    sprite: {fileID: 0}
+  _cgs:
+  - id: cg_earbud
+    sprite: {fileID: 0}
+  _bgms:
+  - id: theme_a
+    clip: {fileID: 0}
+  _episodes:
+  - {fileID: 4900000, guid: 9bc80aad2a280454a81e323e24557acf, type: 3}

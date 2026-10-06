@@ -7,8 +7,7 @@ using UnityEngine.UI;
 namespace RhythmCP.Vn
 {
     /// 세이브/로드 슬롯 화면. 같은 화면을 모드만 바꿔 쓴다.
-    // TODO(UI 다듬기): 지금은 차 있는 슬롯에 세이브하면 확인 없이 바로 덮어쓴다(2026-10-07 임시 결정).
-    //   덮어쓰기 확인창("슬롯 03을 덮어쓸까요?")을 넣을 것 — Open의 onPicked 앞에서 data != null && _saving이면 확인을 거치게.
+    /// 차 있는 슬롯에 세이브하면 덮어쓰기 확인 팝업을 한 번 띄우고 저장한다(2026-10-07 플레이테스트 후 결정).
     public class VnSaveMenuView : MonoBehaviour
     {
         [SerializeField] GameObject _panel;
@@ -16,6 +15,9 @@ namespace RhythmCP.Vn
         [SerializeField] RectTransform _list;
         [SerializeField] VnSaveSlotView _slotPrefab;
         [SerializeField] Button _close;
+
+        [Tooltip("덮어쓰기 확인 팝업(스킵 확인과 같은 것).")]
+        [SerializeField] VnConfirmView _confirm;
 
         readonly List<VnSaveSlotView> _slots = new List<VnSaveSlotView>();
         VnSaveStore _store;
@@ -48,8 +50,14 @@ namespace RhythmCP.Vn
                 int slot = i;
                 var data = _store.Load(i);
                 _slots[i].gameObject.SetActive(i < _store.SlotCount);
-                _slots[i].Set(i, data, _saving || data != null, () => _onPicked?.Invoke(slot));
+                _slots[i].Set(i, data, _saving || data != null, () => Pick(slot, data != null));
             }
+        }
+
+        void Pick(int slot, bool occupied)
+        {
+            if (_saving && occupied) _confirm.Show($"슬롯 {slot + 1:00}에 세이브가 있어요.\n덮어쓸까요?", () => _onPicked?.Invoke(slot));
+            else _onPicked?.Invoke(slot);
         }
 
         public void Close() => _panel.SetActive(false);

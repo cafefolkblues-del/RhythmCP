@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f5306a8b6ebd2b499a5718075c9540f, type: 3}
+  m_Name: VnChar_madoromi
+  m_EditorClassIdentifier: RhythmCP.Runtime::RhythmCP.Vn.VnCharacter
+  _id: madoromi
+  _displayName: "\uB9C8\uB3C4\uB85C\uBBF8 \uADF8\uB9AC"
+  _expressions:
+  - id: normal
+    sprite: {fileID: 0}
+  - id: soft
+    sprite: {fileID: 0}
+  - id: pout
+    sprite: {fileID: 0}
+  _placeholderColor: {r: 0.6, g: 0.6, b: 0.6, a: 1}
+  _metaLines:
+  - "\uD765\uBBF8\uB85C\uC6B4 \uC190\uB2D8\uC774\uB124."

@@ -1,4 +1,5 @@
 using System;
+using RhythmCP.Vn;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -32,6 +33,10 @@ namespace RhythmCP.Settings
         [SerializeField] Button _visualPlus5;
         [SerializeField] VisualOffsetPreview _preview;
 
+        [Header("VN")]
+        [Tooltip("\"VN만 보기\"(리듬 없이 스토리만). 2026-10-07 VN 메뉴바에서 설정으로 옮김. 비우면 행 없음.")]
+        [SerializeField] Toggle _vnOnly;
+
         [SerializeField] Button _close;
 
         InputAction _esc;
@@ -48,6 +53,7 @@ namespace RhythmCP.Settings
             _visualPlus5.onClick.AddListener(() => GameSettings.VisualOffsetMs += 5);
             _judgeCalibrate.onClick.AddListener(OpenCalibration);
             _close.onClick.AddListener(Close);
+            if (_vnOnly != null) _vnOnly.onValueChanged.AddListener(on => VnPreferences.VnOnly = on);
 
             _esc = new InputAction("SettingsBack", InputActionType.Button, "<Keyboard>/escape");
             _esc.performed += _ => OnBack();
@@ -74,6 +80,7 @@ namespace RhythmCP.Settings
         {
             _judgeValue.text = $"{GameSettings.JudgeOffsetMs:+0;-0;0} ms";
             _visualValue.text = $"{GameSettings.VisualOffsetMs:+0;-0;0} ms";
+            if (_vnOnly != null) _vnOnly.SetIsOnWithoutNotify(VnPreferences.VnOnly);
         }
 
         void OpenCalibration()

@@ -50,7 +50,8 @@ namespace RhythmCP.Vn
                 string name = _character != null ? _character.DisplayName : _id;
                 _placeholderLabel.text = sprite != null ? string.Empty : string.IsNullOrEmpty(expr) ? name : $"{name}\n<size=70%>{expr}</size>";
             }
-            if (!_leaving && !_tween.Running) _image.color = _base * _tint;
+            // 색은 여기서 바로 바꾸지 않는다 — 이어서 부르는 SetTint가 지금 색(등장 직후면 검정 투명)에서 보간한다.
+            // 여기서 바꾸면 새 캐릭터가 검정에서 밝아지는 등장 페이드가 사라진다.
         }
 
         /// 비화자면 어둡게. 진행 중인 등장 페이드도 새 목표색으로 이어간다.

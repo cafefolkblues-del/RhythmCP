@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using RhythmCP.Settings;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,6 +35,12 @@ namespace RhythmCP.Vn
         [SerializeField] VnSaveMenuView _saveMenu;
         [SerializeField] VnOneLinerView _oneLiner;
 
+        [Tooltip("스킵·세이브 덮어쓰기 확인 팝업.")]
+        [SerializeField] VnConfirmView _confirm;
+
+        [Tooltip("공용 설정 창(리듬 일시정지와 같은 프리팹). \"VN만 보기\"도 여기서 켠다.")]
+        [SerializeField] SettingsOverlay _settingsPrefab;
+
         public event Action Finished;
 
         VnPlayer _player;
@@ -41,10 +48,12 @@ namespace RhythmCP.Vn
         VnSaveStore _saves;
         VnAutoAdvance _auto;
         bool _firstLine;
+        SettingsOverlay _openSettings;
+        bool _vnOnlyBeforeSettings;
 
         public VnPlayer Player => _player;
 
-        bool OverlayOpen => _backlog.IsOpen || _saveMenu.IsOpen;
+        bool OverlayOpen => _backlog.IsOpen || _saveMenu.IsOpen || _confirm.IsOpen || _openSettings != null;
 
         void Awake()
         {
@@ -57,7 +66,6 @@ namespace RhythmCP.Vn
         void Start()
         {
             _menu.ShowMode(_auto.Mode);
-            _menu.ShowVnOnly(VnPreferences.VnOnly);
             StartEpisode(VnSerializer.ReadEpisode(_episode.text), new VnFlags(), _startIndex, null);
         }
 
@@ -73,7 +81,8 @@ namespace RhythmCP.Vn
             _menu.BacklogClicked += OpenBacklog;
             _menu.SaveClicked += OpenSave;
             _menu.LoadClicked += OpenLoad;
-            _menu.VnOnlyClicked += ToggleVnOnly;
+            _menu.SkipClicked += AskSkip;
+            _menu.SettingsClicked += OpenSettings;
         }
 
         void OnDisable()
@@ -88,7 +97,8 @@ namespace RhythmCP.Vn
             _menu.BacklogClicked -= OpenBacklog;
             _menu.SaveClicked -= OpenSave;
             _menu.LoadClicked -= OpenLoad;
-            _menu.VnOnlyClicked -= ToggleVnOnly;
+            _menu.SkipClicked -= AskSkip;
+            _menu.SettingsClicked -= OpenSettings;
         }
 
         // 기읽 기록은 매 라인 쓰지 않고 종료·세이브·에피소드 끝에 한 번에.
@@ -130,24 +140,32 @@ namespace RhythmCP.Vn
 
         void OnLineShown(VnShownLine shown)
         {
-            // 첫 라인(처음·중간 시작·불러오기)과 스킵 중에는 연출 없이 바로.
+            // 스킵(한 번에 건너뛰기) 중엔 그리지 않는다 — 끝난 뒤 멈춘 줄만 Render.
+            if (_player.IsJumping) return;
+
+            // 첫 라인(처음·중간 시작·불러오기)과 기읽 스킵·Ctrl 빨리감기 중에는 연출 없이 바로.
+            // 기읽 스킵이 안 읽은 줄에서 꺼지는 판단을 먼저 — 그 줄부터는 타자기·연출을 정상으로.
+            _auto.OnLineShown(shown, (shown.Line.text ?? string.Empty).Length);
             bool skipping = _auto.IsSkipping || _input.SkipHeld;
             bool instant = _firstLine || skipping;
             _firstLine = false;
+            Render(shown, instant, skipping);
+        }
 
+        void Render(VnShownLine shown, bool instant, bool completeText)
+        {
             _choices.Hide();
             _stage.Show(_player.Stage, shown, instant);
             _fx.Play(shown.Line.fx, instant);
             _bgm.Play(_catalog.Bgm(_player.Stage.bgm), instant);
             _dialogue.Show(shown, _config.CharsPerSec);
-            if (skipping) _dialogue.Complete();
-            _auto.OnLineShown(shown, (shown.Line.text ?? string.Empty).Length);
+            if (completeText) _dialogue.Complete();
         }
 
         void OnAdvanceInput()
         {
             if (_player == null || _player.Ended || OverlayOpen) return;
-            // 스킵 중 직접 누르면 스킵을 끈다(오토는 유지 — 누르면 한 줄 먼저 넘어갈 뿐).
+            // 기읽 스킵 중 직접 누르면 스킵을 끈다(오토는 유지 — 누르면 한 줄 먼저 넘어갈 뿐).
             if (_auto.IsSkipping)
             {
                 _auto.Mode = VnAdvanceMode.Manual;
@@ -195,7 +213,10 @@ namespace RhythmCP.Vn
 
         void CloseOverlay()
         {
-            if (_saveMenu.IsOpen) _saveMenu.Close();
+            // 설정 창은 자기 Esc로 닫힌다(공용 프리팹). 확인 팝업이 가장 위.
+            if (_openSettings != null) return;
+            if (_confirm.IsOpen) _confirm.Close();
+            else if (_saveMenu.IsOpen) _saveMenu.Close();
             else if (_backlog.IsOpen) _backlog.Close();
         }
 
@@ -213,7 +234,7 @@ namespace RhythmCP.Vn
             _saveMenu.Open(_saves, false, LoadFrom);
         }
 
-        // TODO(UI 다듬기): 덮어쓰기 확인 없이 바로 저장 중 — 확인창은 VnSaveMenuView 쪽 TODO 참고.
+        /// 차 있는 슬롯이면 VnSaveMenuView가 덮어쓰기 확인을 받은 뒤 여기로 온다.
         void SaveTo(int slot)
         {
             var cur = _player.Current;
@@ -262,13 +283,49 @@ namespace RhythmCP.Vn
             return text.Length <= 24 ? text : text.Substring(0, 24) + "…";
         }
 
-        // ---------------- VN만 보기
+        // ---------------- 스킵 (확인 팝업 → 다음 선택지 또는 에피소드 끝까지 한 번에)
 
-        void ToggleVnOnly()
+        void AskSkip()
         {
-            VnPreferences.VnOnly = !VnPreferences.VnOnly;
-            _menu.ShowVnOnly(VnPreferences.VnOnly);
-            if (VnPreferences.VnOnly) ShowOneLiner();
+            if (OverlayOpen || _player == null || _player.Ended || _player.AwaitingChoice) return;
+            _auto.Mode = VnAdvanceMode.Manual;
+            string where = ChoiceAhead() ? "다음 선택지까지" : "에피소드 끝까지";
+            _confirm.Show($"{where} 건너뛸까요?", SkipNow);
+        }
+
+        void SkipNow()
+        {
+            _dialogue.Complete();
+            _player.SkipToNextStop();
+            // 멈춘 줄(선택지 또는 마지막 줄)을 연출 없이 바로 — 무대는 건너뛴 줄들의 지시가 다 쌓인 상태.
+            Render(_player.Current, true, false);
+        }
+
+        /// 지금 플래그 기준으로 뒤에 보이는 선택지가 있는지(팝업 문구용).
+        bool ChoiceAhead()
+        {
+            var lines = _player.Episode.lines;
+            for (int i = _player.Current.Index + 1; i < lines.Count; i++)
+                if (lines[i].IsChoice && _player.IsVisible(i)) return true;
+            return false;
+        }
+
+        // ---------------- 설정 · VN만 보기
+
+        /// 공용 설정 창(리듬 일시정지와 같은 프리팹). 닫을 때 "VN만 보기"를 새로 켰으면 한마디.
+        void OpenSettings()
+        {
+            if (OverlayOpen) return;
+            _auto.Mode = VnAdvanceMode.Manual;
+            _vnOnlyBeforeSettings = VnPreferences.VnOnly;
+            _openSettings = Instantiate(_settingsPrefab);
+            _openSettings.Closed += OnSettingsClosed;
+        }
+
+        void OnSettingsClosed()
+        {
+            _openSettings = null;
+            if (!_vnOnlyBeforeSettings && VnPreferences.VnOnly) ShowOneLiner();
         }
 
         /// 지금 말하는 캐릭터의 한마디, 없으면 이 에피소드 출연진 중 한마디가 있는 캐릭터 아무나.

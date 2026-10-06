@@ -34,6 +34,16 @@ namespace RhythmCP.Vn
         public Color PlaceholderColor => _placeholderColor;
         public IReadOnlyList<string> MetaLines => _metaLines;
 
+        /// 에디터 표정 드롭다운용. 스프라이트가 비어 있어도 id만 있으면 고를 수 있다(아트 전 작성).
+        public IEnumerable<string> ExpressionIds
+        {
+            get
+            {
+                foreach (var e in _expressions)
+                    if (!string.IsNullOrEmpty(e.id)) yield return e.id;
+            }
+        }
+
         public Sprite GetSprite(string expr)
         {
             foreach (var e in _expressions)

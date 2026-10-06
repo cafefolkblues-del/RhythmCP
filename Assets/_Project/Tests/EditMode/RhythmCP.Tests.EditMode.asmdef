@@ -4,6 +4,7 @@
     "references": [
         "RhythmCP.Runtime",
         "RhythmCP.ChartEditor",
+        "RhythmCP.VnEditor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],

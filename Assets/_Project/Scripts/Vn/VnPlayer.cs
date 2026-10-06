@@ -84,6 +84,9 @@ namespace RhythmCP.Vn
         /// 지금 라인을 적용하기 직전의 무대. 세이브는 이것과 현재 라인 id를 저장한다 — 불러오면 그 라인을 다시 적용해 같은 화면이 된다.
         public VnStageState StageBeforeCurrent { get; private set; }
 
+        /// SkipToNextStop 도중. 뷰는 이 동안 오는 LineShown을 무시하고, 끝난 뒤 멈춘 줄만 즉시 그린다.
+        public bool IsJumping { get; private set; }
+
         bool _chosen;
 
         /// displayName: 캐릭터 id → 표시 이름(카탈로그). readLog: 기읽 기록(없으면 null).
@@ -111,6 +114,23 @@ namespace RhythmCP.Vn
             if (Ended || AwaitingChoice) return false;
             ShowFrom(Current == null ? 0 : Current.Index + 1);
             return !Ended;
+        }
+
+        /// 스킵(확인 팝업 후): 다음 선택지 또는 에피소드 끝까지 한 번에. 무대·플래그·백로그는 줄마다 그대로 쌓는다.
+        /// 지금 줄이 선택지면 아무것도 안 한다(고르기 전엔 못 넘어감). 넘긴 줄 수를 돌려준다.
+        public int SkipToNextStop()
+        {
+            int skipped = 0;
+            IsJumping = true;
+            try
+            {
+                while (!Ended && !AwaitingChoice && Advance()) skipped++;
+            }
+            finally
+            {
+                IsJumping = false;
+            }
+            return skipped;
         }
 
         public void Choose(int index)
@@ -159,7 +179,8 @@ namespace RhythmCP.Vn
 
             string ep = Episode.meta.id;
             shown.WasRead = _readLog != null && _readLog.IsRead(ep, line.id);
-            _readLog?.MarkRead(ep, line.id);
+            // 건너뛴 줄은 읽은 게 아니다 — 기읽 스킵이 나중에 그 줄을 넘기지 않게.
+            if (!IsJumping) _readLog?.MarkRead(ep, line.id);
 
             Current = shown;
             _chosen = false;

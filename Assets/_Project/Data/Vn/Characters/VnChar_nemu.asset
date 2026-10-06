@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f5306a8b6ebd2b499a5718075c9540f, type: 3}
+  m_Name: VnChar_nemu
+  m_EditorClassIdentifier: RhythmCP.Runtime::RhythmCP.Vn.VnCharacter
+  _id: nemu
+  _displayName: "\uB124\uBB34 \uB178\uC544\uB974"
+  _expressions:
+  - id: normal
+    sprite: {fileID: 0}
+  - id: soft
+    sprite: {fileID: 0}
+  - id: pout
+    sprite: {fileID: 0}
+  _placeholderColor: {r: 0.42, g: 0.42, b: 0.42, a: 1}
+  _metaLines:
+  - "(\uC784\uC2DC) \uB124\uBB34\uC758 \uD55C\uB9C8\uB514"
