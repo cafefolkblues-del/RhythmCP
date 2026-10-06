@@ -9,6 +9,10 @@
       "bpm": 120.0
     },
     {
+      "beat": 4.0,
+      "bpm": 120.0
+    },
+    {
       "beat": 32.0,
       "bpm": 150.0
     }
@@ -21,12 +25,77 @@
     {
       "type": "Tap",
       "lane": "Top",
+      "beat": -2.25
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": -2.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": -1.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": -1.25
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": -0.25
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 0.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 0.75
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 2.5
+    },
+    {
+      "type": "Tap",
+      "lane": "Bottom",
+      "beat": 2.75
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 3.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
       "beat": 4.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 4.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 4.75
     },
     {
       "type": "Tap",
       "lane": "Bottom",
       "beat": 5.0
+    },
+    {
+      "type": "Tap",
+      "lane": "Top",
+      "beat": 5.25
     },
     {
       "type": "Tap",
