@@ -19,6 +19,7 @@ namespace RhythmCP.ChartEditing
             Create,
             Box,
             Scrub,
+            ResizeEnd,
         }
 
         [SerializeField] ChartEditorSession _session;
@@ -31,6 +32,7 @@ namespace RhythmCP.ChartEditing
         Vector2 _downLocal;
         double _downBeat;
         Lane _downLane;
+        NoteData _resizing;
 
         public void OnPointerDown(PointerEventData e)
         {
@@ -52,6 +54,16 @@ namespace RhythmCP.ChartEditing
             {
                 _mode = Mode.Scrub;
                 _session.SetCursor(_timeline.XToTime(p.x));
+                return;
+            }
+
+            // 홀드·연타 꼬리를 잡으면 길이 조정(스펙 §6 "홀드 길이 드래그").
+            _resizing = TailHitTest(p);
+            if (_resizing != null)
+            {
+                _mode = Mode.ResizeEnd;
+                _session.CreatePreview = Clone(_resizing);
+                _session.NotifyRedraw();
                 return;
             }
 
@@ -112,7 +124,8 @@ namespace RhythmCP.ChartEditing
                     };
                     break;
                 case Mode.Create:
-                    _session.CreatePreview.endBeat = Math.Max(_downBeat + 1.0 / _session.SnapDivision, beat);
+                case Mode.ResizeEnd:
+                    _session.CreatePreview.endBeat = Math.Max(_session.CreatePreview.beat + 1.0 / _session.SnapDivision, beat);
                     break;
                 case Mode.Box:
                     _session.BoxSelect = Rect.MinMaxRect(Mathf.Min(_downLocal.x, p.x), Mathf.Min(_downLocal.y, p.y),
@@ -140,6 +153,12 @@ namespace RhythmCP.ChartEditing
                 case Mode.Box:
                     SelectInBox(_session.BoxSelect ?? default);
                     _session.BoxSelect = null;
+                    break;
+                case Mode.ResizeEnd:
+                    double end = _session.CreatePreview.endBeat;
+                    _session.CreatePreview = null;
+                    if (Math.Abs(end - _resizing.endBeat) > 1e-9) _session.SetEndBeat(_resizing, end);
+                    _resizing = null;
                     break;
             }
             _mode = Mode.None;
@@ -189,6 +208,22 @@ namespace RhythmCP.ChartEditing
             }
             return best;
         }
+
+        NoteData TailHitTest(Vector2 p)
+        {
+            if (!_timeline.TryLaneAt(p.y, out var lane)) return null;
+            var tempo = _session.Document.Tempo;
+            foreach (var n in _session.Document.Data.notes)
+            {
+                if (n.type != NoteType.Hold && n.type != NoteType.Mash) continue;
+                if (n.lane != lane && n.type != NoteType.Mash) continue;
+                float x1 = _timeline.TimeToX(tempo.BeatToSec(n.endBeat));
+                if (Mathf.Abs(p.x - x1) <= _hitRadius * 0.8f) return n;
+            }
+            return null;
+        }
+
+        static NoteData Clone(NoteData n) => new NoteData { type = n.type, lane = n.lane, beat = n.beat, endBeat = n.endBeat, speed = n.speed };
 
         void SelectInBox(Rect box)
         {

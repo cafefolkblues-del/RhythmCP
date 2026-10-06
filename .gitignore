@@ -55,3 +55,7 @@ Assets/SlimUI.meta
 #   곡: Audio/Music/_Local/ · 곡 에셋: Data/Songs/_Local/ · 채보: Charts/_Local/ (채보 에디터가 자동 배치)
 Assets/_Project/**/_Local/
 Assets/_Project/**/_Local.meta
+
+# 파이썬 분석기 캐시
+__pycache__/
+*.pyc

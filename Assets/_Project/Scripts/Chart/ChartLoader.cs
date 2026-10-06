@@ -58,6 +58,9 @@ namespace RhythmCP.Chart
             return new PlayChart(data, tempo, notes);
         }
 
+        // TODO(검토 필요, 2026-10-07): 동시치기를 지금처럼 "같은 박자 위아래 Tap"으로 자동 판별할지,
+        // M2 채보 스펙처럼 "gemini" 노트 타입을 따로 둘지 재검토. 타입을 두면 채보 작성자가 의도를 명시할 수 있고,
+        // 자동 판별은 실수로 겹친 두 탭도 동시치기로 만든다. 바꾸게 되면 여기와 NoteType·ChartValidator만 손보면 된다.
         static void MarkGeminis(List<PlayNote> notes)
         {
             for (int i = 0; i < notes.Count; i++)

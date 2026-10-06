@@ -34,6 +34,7 @@ namespace RhythmCP.ChartEditing
         [SerializeField] PlaybackController _playback;
         [SerializeField] RecordingController _recording;
         [SerializeField] RhythmConfig _config;
+        [SerializeField] AutoChartSettings _autoChart;
 
         [Tooltip("재생 중 위치 표시선(영역의 자식, 가로 앵커 0.5).")]
         [SerializeField] RectTransform _playhead;
@@ -59,6 +60,15 @@ namespace RhythmCP.ChartEditing
         public List<ValidationIssue> Issues { get; private set; } = new List<ValidationIssue>();
         public WaveformData Waveform { get; private set; }
 
+        /// 분석 사이드카(analysis.json). 없으면 null — 자동 채보 패널에서 [분석 실행].
+        public AnalysisData Analysis { get; private set; }
+        public AutoChartParams AutoParams => _autoChart.Params;
+        public bool IsAnalyzing => _analysisRunner.IsRunning;
+        public string AnalysisStage => _analysisRunner.Stage;
+
+        /// BPM·오프셋을 고치면 다른 난이도 채보에도 같이 반영(파일을 난이도별로 나눈 포맷을 유지하는 대신 두는 장치, 2026-10-07).
+        public bool SyncTimingAcrossDifficulties { get; set; } = true;
+
         public EditTool Tool { get; private set; } = EditTool.Tap;
         public bool FastNotes { get; private set; }
         public int SnapDivision { get; private set; } = 4;
@@ -76,6 +86,7 @@ namespace RhythmCP.ChartEditing
         public string LastMessage { get; private set; }
 
         ChartFileStore _store;
+        readonly AnalysisRunner _analysisRunner = new AnalysisRunner();
         float _lastEditTime;
         float _nextExternalCheck;
         double _playStartSec;
@@ -131,6 +142,7 @@ namespace RhythmCP.ChartEditing
             Document.Changed += OnDocumentChanged;
             Selection.Clear();
             Waveform = LoadWaveform(song.Clip);
+            Analysis = AnalysisData.Read(ChartFileStore.AnalysisPathFor(song));
             CursorSec = 0;
             _timeline.Follow(0);
             Revalidate();
@@ -174,7 +186,34 @@ namespace RhythmCP.ChartEditing
 
         // ------------------------------------------------------------ 편집 명령 (뷰·입력이 부른다)
 
-        public double SnapBeat(double beat) => BeatGrid.Snap(beat, SnapDivision);
+        /// Alt를 누르고 있으면 스냅 없이 그대로(자유 배치, 스펙 §6 "수동 = 스냅 기본 + 자유 토글").
+        public double SnapBeat(double beat)
+        {
+            var kb = Keyboard.current;
+            return kb != null && kb.altKey.isPressed ? beat : BeatGrid.Snap(beat, SnapDivision);
+        }
+
+        /// 선택한 노트들의 타입을 바꾼다(Shift+1~4). 홀드·연타로 바꾸면 기본 길이 1박.
+        public void ChangeSelectionType(NoteType type)
+        {
+            if (Selection.Count == 0) return;
+            var sel = Selection.ToList();
+            Document.Edit(d =>
+            {
+                foreach (var n in sel)
+                {
+                    bool hadLength = n.type == NoteType.Hold || n.type == NoteType.Mash;
+                    n.type = type;
+                    bool hasLength = type == NoteType.Hold || type == NoteType.Mash;
+                    if (hasLength && !hadLength) n.endBeat = n.beat + 1;
+                    if (!hasLength) n.endBeat = 0;
+                    if (type != NoteType.Tap && type != NoteType.Heart) n.speed = 1f;
+                }
+            });
+        }
+
+        /// 홀드·연타 끝 조정(꼬리 드래그).
+        public void SetEndBeat(NoteData note, double endBeat) => Document.Edit(_ => note.endBeat = Math.Max(note.beat + 1.0 / SnapDivision, endBeat));
 
         public void AddNote(NoteData note)
         {
@@ -232,11 +271,89 @@ namespace RhythmCP.ChartEditing
 
         public void ClearClimax() => Document.Edit(d => d.climax = null);
 
-        public void SetTiming(List<BpmPoint> bpms, double offsetSec) => Document.Edit(d =>
+        public void SetTiming(List<BpmPoint> bpms, double offsetSec)
         {
-            d.bpms = bpms;
-            d.offsetSec = offsetSec;
-        });
+            Document.Edit(d =>
+            {
+                d.bpms = bpms;
+                d.offsetSec = offsetSec;
+            });
+            if (SyncTimingAcrossDifficulties) SyncOtherDifficultyTiming();
+        }
+
+        void SyncOtherDifficultyTiming()
+        {
+            var other = Difficulty == Difficulty.Easy ? Difficulty.Hard : Difficulty.Easy;
+            var store = ChartFileStore.For(Song, other);
+            if (!store.Exists) return;
+            var data = store.Load();
+            data.bpms = Document.Data.bpms.Select(b => new BpmPoint { beat = b.beat, bpm = b.bpm }).ToList();
+            data.offsetSec = Document.Data.offsetSec;
+            store.Save(data, Song, other);
+            Message($"{other} 채보 타이밍도 같이 맞춤");
+        }
+
+        // ------------------------------------------------------------ 자동 채보
+
+        public void RunAnalysis(bool force)
+        {
+            if (Song == null || Song.Clip == null || IsAnalyzing) return;
+#if UNITY_EDITOR
+            string audio = UnityEditor.AssetDatabase.GetAssetPath(Song.Clip);
+            _analysisRunner.Start(_autoChart.PythonCommand, _autoChart.AnalyzerPath, audio, ChartFileStore.AnalysisPathFor(Song), force);
+            Message("분석 중…");
+#endif
+        }
+
+        /// 분석 BPM(또는 후보 BPM)·오프셋을 채보 타이밍으로. 노트는 박 단위라 시각이 같이 바뀐다 — 생성 전에 쓰는 버튼.
+        public void ApplyAnalysisTiming(double bpm)
+        {
+            if (Analysis == null) return;
+            double period = 60.0 / bpm;
+            double offset = (Analysis.offsetMs / 1000.0) % period;
+            SetTiming(new List<BpmPoint> { new BpmPoint { beat = 0, bpm = bpm } }, offset);
+        }
+
+        /// 마디 첫 박 맞추기: 분석은 박의 위상만 알고 어느 박이 마디 시작인지 모른다 — 0박 위치를 한 박씩 민다.
+        public void ShiftDownbeat(int beats)
+        {
+            double period = 60.0 / Document.Tempo.BpmAtBeat(0);
+            SetTiming(Document.Data.bpms.Select(b => new BpmPoint { beat = b.beat, bpm = b.bpm }).ToList(),
+                Document.Data.offsetSec + beats * period);
+        }
+
+        public void GenerateAuto()
+        {
+            if (Analysis == null) { Message("먼저 분석을 실행하세요"); return; }
+            var result = AutoCharter.Generate(Analysis, Document.Tempo, AutoParams);
+            Document.Edit(d =>
+            {
+                d.notes = result.Notes;
+                d.climax = result.Climax;
+            });
+            Selection.Clear();
+            string bpmHint = Math.Abs(Document.Tempo.BpmAtBeat(0) - Analysis.bpm) > 0.5 ? $" · 채보 BPM이 분석({Analysis.bpm:0.##})과 다름" : "";
+            string warn = result.Warnings.Count > 0 ? " · " + string.Join(" / ", result.Warnings) : "";
+            Message($"자동 생성: 노트 {result.Notes.Count}개 (Ctrl+Z로 되돌리기){bpmHint}{warn}");
+            NotifyAll();
+        }
+
+        void PollAnalysis()
+        {
+            _analysisRunner.Poll();
+            if (!_analysisRunner.TryFinish(out bool ok, out string error))
+            {
+                if (_analysisRunner.IsRunning) StateChanged?.Invoke();
+                return;
+            }
+            if (ok)
+            {
+                Analysis = AnalysisData.Read(ChartFileStore.AnalysisPathFor(Song));
+                Message(Analysis != null ? $"분석 완료: BPM {Analysis.bpm:0.##} · 온셋 {Analysis.onsets.Count}개" : "분석 파일을 읽지 못함");
+            }
+            else Message("분석 실패: " + error);
+            NotifyAll();
+        }
 
         // ------------------------------------------------------------ 상태
 
@@ -366,6 +483,7 @@ namespace RhythmCP.ChartEditing
                 }
             }
 
+            PollAnalysis();
             HandleShortcuts();
         }
 
@@ -392,6 +510,16 @@ namespace RhythmCP.ChartEditing
             if (ctrl && kb.yKey.wasPressedThisFrame) Document.Redo();
             if (ctrl && kb.sKey.wasPressedThisFrame) { Save(); Message("저장됨"); }
             if (ctrl) return;
+
+            if (kb.shiftKey.isPressed)
+            {
+                // Shift+1~4: 선택한 노트의 타입 변경(스펙 §6 수동 편집 "타입 변경").
+                if (kb.digit1Key.wasPressedThisFrame) ChangeSelectionType(NoteType.Tap);
+                if (kb.digit2Key.wasPressedThisFrame) ChangeSelectionType(NoteType.Hold);
+                if (kb.digit3Key.wasPressedThisFrame) ChangeSelectionType(NoteType.Heart);
+                if (kb.digit4Key.wasPressedThisFrame) ChangeSelectionType(NoteType.Mash);
+                return;
+            }
 
             if (kb.digit1Key.wasPressedThisFrame) SetTool(EditTool.Tap);
             if (kb.digit2Key.wasPressedThisFrame) SetTool(EditTool.Hold);

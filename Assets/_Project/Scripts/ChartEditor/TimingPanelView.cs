@@ -33,6 +33,9 @@ namespace RhythmCP.ChartEditing
         [SerializeField] Toggle _metronome;
         [SerializeField] Toggle _recordSnap;
 
+        [Tooltip("BPM·오프셋을 고치면 다른 난이도 채보에도 같이 반영.")]
+        [SerializeField] Toggle _syncTiming;
+
         readonly List<RectTransform> _rows = new List<RectTransform>();
         readonly List<double> _taps = new List<double>();
         double _fitBpm, _fitOffset;
@@ -49,6 +52,7 @@ namespace RhythmCP.ChartEditing
             _assistHits.onValueChanged.AddListener(v => _session.Playback.AssistHits = v);
             _metronome.onValueChanged.AddListener(v => _session.Playback.Metronome = v);
             _recordSnap.onValueChanged.AddListener(v => _session.RecordSnap = v);
+            if (_syncTiming != null) _syncTiming.onValueChanged.AddListener(v => _session.SyncTimingAcrossDifficulties = v);
             _session.StateChanged += Refresh;
             Refresh();
         }

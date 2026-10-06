@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 441a346a5b85ef74da8eec2b023d629a, type: 3}
+  m_Name: AutoChartSettings
+  m_EditorClassIdentifier: RhythmCP.ChartEditor::RhythmCP.ChartEditing.AutoChartSettings
+  _params:
+    targetNps: 1.5
+    segmentMinNps: 0.5
+    segmentMaxNps: 2.5
+    minGapBeats: 0.5
+    minGapSec: 0.3
+    runGapBeats: 1
+    runGapSec: 0.4
+    laneSwitchMinRun: 2
+    holdMinBeats: 1
+    heartIntervalSec: 20
+    allowTriplets: 0
+    offGridFlagBeats: 0.125
+    climaxSec: 30
+  _pythonCommand: py
+  _analyzerPath: Tools/Analysis/analyze.py

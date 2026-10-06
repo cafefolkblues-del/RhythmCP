@@ -33,6 +33,9 @@ namespace RhythmCP.ChartEditing
             return new ChartFileStore(path);
         }
 
+        /// 분석 사이드카(analysis.json) 위치: 채보 옆 {곡ID}.analysis.json — 난이도와 무관하게 곡당 1개.
+        public static string AnalysisPathFor(SongDefinition song) => $"{ChartFolderFor(song)}/{song.SongId}.analysis.json";
+
         /// 곡 에셋이 _Local 폴더(로컬 전용 테스트 곡, git 제외)에 있으면 채보도 Charts/_Local로 — 따로 gitignore를 안 만져도 되게.
         static string ChartFolderFor(SongDefinition song)
         {
